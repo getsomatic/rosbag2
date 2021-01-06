@@ -21,32 +21,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(pluginlib REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
-find_package(rosbag2_cpp)
-find_package(rosbag2_storage REQUIRED)
-find_package(zstd_vendor REQUIRED)
-find_package(zstd REQUIRED)
 
-add_library(${PROJECT_NAME}_zstd
-  SHARED
-  src/rosbag2_compression/compression_utils.cpp
-  src/rosbag2_compression/zstd_compressor.cpp
-  src/rosbag2_compression/zstd_decompressor.cpp)
-target_include_directories(${PROJECT_NAME}_zstd
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(${PROJECT_NAME}_zstd
-  rcpputils
-  rcutils
-  rosbag2_storage
-  zstd)
-# Causes the visibility macros to use dllexport rather than dllimport.
-# This is appropriate when building the dll but not consuming it.
-target_compile_definitions(${PROJECT_NAME}_zstd
-  PRIVATE
-  ROSBAG2_COMPRESSION_BUILDING_DLL)
+find_package(rosbag2_cpp)
+# TODO(ek) why depending rosbag2_storage?
+find_package(rosbag2_storage REQUIRED)
 
 add_library(${PROJECT_NAME}
   SHARED
