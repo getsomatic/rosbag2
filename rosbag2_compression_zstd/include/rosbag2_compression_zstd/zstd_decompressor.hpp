@@ -24,7 +24,8 @@
 #include <string>
 
 #include "rosbag2_compression/base_decompressor_interface.hpp"
-#include "rosbag2_compression/visibility_control.hpp"
+
+#include "rosbag2_compression_zstd/visibility_control.hpp"
 
 namespace rosbag2_compression_zstd
 {
@@ -34,7 +35,8 @@ namespace rosbag2_compression_zstd
  *
  * ZstdDecompressor should only be initialized by Reader.
  */
-class ROSBAG2_COMPRESSION_PUBLIC ZstdDecompressor : public BaseDecompressorInterface
+class ROSBAG2_COMPRESSION_ZSTD_PUBLIC
+ZstdDecompressor : public rosbag2_compression::BaseDecompressorInterface
 {
 public:
   ZstdDecompressor();

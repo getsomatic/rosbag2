@@ -24,17 +24,18 @@
 #include <string>
 
 #include "rosbag2_compression/base_compressor_interface.hpp"
-#include "rosbag2_compression/visibility_control.hpp"
+
+#include "rosbag2_compression_zstd/visibility_control.hpp"
 
 namespace rosbag2_compression_zstd
 {
 
 /**
- * A BaseCompressorInterface that is used to compress bagfiles stored using ZStandard compression.
+ * An implementation of rosbag2_compression using the Zstd library.
  *
- * ZstdCompressor should only be initialized by Writer.
  */
-class ROSBAG2_COMPRESSION_PUBLIC ZstdCompressor : public BaseCompressorInterface
+class ROSBAG2_COMPRESSION_ZSTD_PUBLIC
+ZstdCompressor : public rosbag2_compression::BaseCompressorInterface
 {
 public:
   ZstdCompressor();
