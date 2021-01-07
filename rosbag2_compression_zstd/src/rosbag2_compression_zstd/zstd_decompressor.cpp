@@ -117,3 +117,8 @@ std::string ZstdDecompressor::get_decompression_identifier() const
   return kDecompressionIdentifier;
 }
 }  // namespace rosbag2_compression_zstd
+
+#include "pluginlib/class_list_macros.hpp"  // NOLINT
+PLUGINLIB_EXPORT_CLASS(
+  rosbag2_compression_zstd::ZstdDecompressor,
+  rosbag2_compression::BaseDecompressorInterface)

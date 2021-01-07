@@ -21,13 +21,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(pluginlib REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rosbag2_compression REQUIRED)
 find_package(zstd_vendor REQUIRED)
 find_package(zstd REQUIRED)
 
-add_library(${PROJECT_NAME}
-  SHARED
+add_library(${PROJECT_NAME} SHARED
   src/rosbag2_compression_zstd/compression_utils.cpp
   src/rosbag2_compression_zstd/zstd_compressor.cpp
   src/rosbag2_compression_zstd/zstd_decompressor.cpp)
@@ -40,6 +40,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rosbag2_compression
   zstd)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ROSBAG2_COMPRESSION_ZSTD_BUILDING_DLL)
+pluginlib_export_plugin_description_file(rosbag2_compression plugin_description.xml)
 
 install(
   DIRECTORY include/
