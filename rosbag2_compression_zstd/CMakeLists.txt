@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(ros2_compression_zstd)
+project(rosbag2_compression_zstd)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
