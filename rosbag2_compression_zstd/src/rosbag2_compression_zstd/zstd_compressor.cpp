@@ -22,9 +22,9 @@
 #include "rcpputils/filesystem_helper.hpp"
 
 #include "compression_utils.hpp"
-#include "rosbag2_compression/zstd_compressor.hpp"
+#include "rosbag2_compression_zstd/zstd_compressor.hpp"
 
-namespace rosbag2_compression
+namespace rosbag2_compression_zstd
 {
 ZstdCompressor::ZstdCompressor()
 {
@@ -113,4 +113,4 @@ std::string ZstdCompressor::get_compression_identifier() const
   return kCompressionIdentifier;
 }
 
-}  // namespace rosbag2_compression
+}  // namespace rosbag2_compression_zstd

@@ -24,7 +24,6 @@ find_package(ament_cmake REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
-
 find_package(rosbag2_cpp)
 # TODO(ek) why depending rosbag2_storage?
 find_package(rosbag2_storage REQUIRED)
@@ -60,6 +59,10 @@ install(
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
+
+install(
+  DIRECTORY cmake
+  DESTINATION share/${PROJECT_NAME})
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})

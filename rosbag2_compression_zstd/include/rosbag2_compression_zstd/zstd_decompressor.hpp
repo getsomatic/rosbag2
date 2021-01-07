@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROSBAG2_COMPRESSION__ZSTD_DECOMPRESSOR_HPP_
-#define ROSBAG2_COMPRESSION__ZSTD_DECOMPRESSOR_HPP_
+#ifndef ROSBAG2_COMPRESSION_ZSTD__ZSTD_DECOMPRESSOR_HPP_
+#define ROSBAG2_COMPRESSION_ZSTD__ZSTD_DECOMPRESSOR_HPP_
 
 #include <zstd.h>
 
@@ -26,7 +26,7 @@
 #include "rosbag2_compression/base_decompressor_interface.hpp"
 #include "rosbag2_compression/visibility_control.hpp"
 
-namespace rosbag2_compression
+namespace rosbag2_compression_zstd
 {
 
 /**
@@ -52,6 +52,6 @@ private:
   ZSTD_DCtx * zstd_context_;
 };
 
-}  // namespace rosbag2_compression
+}  // namespace rosbag2_compression_zstd
 
-#endif  // ROSBAG2_COMPRESSION__ZSTD_DECOMPRESSOR_HPP_
+#endif  // ROSBAG2_COMPRESSION_ZSTD__ZSTD_DECOMPRESSOR_HPP_
