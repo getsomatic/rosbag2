@@ -39,30 +39,32 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_zstd)
 ament_target_dependencies(${PROJECT_NAME}
+  pluginlib
   rcpputils
   rcutils
   rosbag2_cpp
   rosbag2_storage)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ROSBAG2_COMPRESSION_BUILDING_DLL)
 
+# prevent pluginlib from using boost
+target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+
 install(
   DIRECTORY include/
   DESTINATION include)
 
 install(
-  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_zstd
+  TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
 
 ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME} ${PROJECT_NAME}_zstd)
+ament_export_libraries(${PROJECT_NAME})
 ament_export_targets(export_${PROJECT_NAME})
-# order matters here, first vendor, then zstd
-ament_export_dependencies(rcpputils rcutils rosbag2_cpp rosbag2_storage zstd_vendor zstd)
+ament_export_dependencies(pluginlib rcpputils rcutils rosbag2_cpp rosbag2_storage)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
@@ -104,12 +106,6 @@ if(BUILD_TESTING)
     test/rosbag2_compression/test_decompressor.cpp)
   target_link_libraries(test_decompressor fake_decompressor)
 
-  ament_add_gmock(test_zstd_compressor
-    test/rosbag2_compression/test_zstd_compressor.cpp)
-  target_include_directories(test_zstd_compressor PUBLIC include)
-  target_link_libraries(test_zstd_compressor ${PROJECT_NAME}_zstd)
-  ament_target_dependencies(test_zstd_compressor rclcpp rosbag2_test_common rosbag2_storage)
-
   ament_add_gmock(test_compression_options
     test/rosbag2_compression/test_compression_options.cpp)
   target_include_directories(test_compression_options PUBLIC include)
@@ -128,4 +124,5 @@ if(BUILD_TESTING)
   ament_target_dependencies(test_sequential_compression_writer rosbag2_cpp)
 endif()
 
-ament_package()
+ament_package(
+  CONFIG_EXTRAS cmake/rosbag2_compression_register_compression_plugin.cmake)
