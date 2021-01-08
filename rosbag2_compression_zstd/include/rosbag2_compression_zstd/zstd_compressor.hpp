@@ -30,10 +30,7 @@
 namespace rosbag2_compression_zstd
 {
 
-/**
- * An implementation of rosbag2_compression using the Zstd library.
- *
- */
+/// Implementation of rosbag2 compression using the Zstd library.
 class ROSBAG2_COMPRESSION_ZSTD_PUBLIC
 ZstdCompressor : public rosbag2_compression::BaseCompressorInterface
 {
