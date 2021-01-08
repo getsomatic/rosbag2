@@ -22,6 +22,7 @@
   <exec_depend>rosbag2_converter_default_plugins</exec_depend>
   <exec_depend>rosbag2_compression_zstd</exec_depend>
   <exec_depend>rosbag2_storage_default_plugins</exec_depend>
+  <exec_depend>sqlite3_vendor</exec_depend>
 
   <test_depend>rosbag2_test_common</test_depend>
   <test_depend>rosbag2_tests</test_depend>
