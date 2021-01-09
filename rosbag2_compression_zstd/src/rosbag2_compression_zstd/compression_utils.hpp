@@ -104,4 +104,4 @@ void print_compression_statistics(
   const size_t compressed_size);
 }  // namespace rosbag2_compression_zstd
 
-#endif  // ROSBAG2_COMPRESSION__COMPRESSION_UTILS_HPP_
+#endif  // ROSBAG2_COMPRESSION_ZSTD__COMPRESSION_UTILS_HPP_

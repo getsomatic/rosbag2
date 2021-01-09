@@ -31,8 +31,8 @@ namespace rosbag2_compression_zstd
 {
 
 /// Implementation of rosbag2 decompression using the Zstd library.
-class ROSBAG2_COMPRESSION_ZSTD_PUBLIC
-ZstdDecompressor : public rosbag2_compression::BaseDecompressorInterface
+class ROSBAG2_COMPRESSION_ZSTD_PUBLIC ZstdDecompressor
+  : public rosbag2_compression::BaseDecompressorInterface
 {
 public:
   ZstdDecompressor();
