@@ -33,7 +33,7 @@ TEST_F(RecordIntegrationTestFixture, record_all_without_discovery_ignores_later_
     "publisher_for_test",
     rclcpp::NodeOptions().start_parameter_event_publisher(false));
 
-  start_recording({true, true, {}, "rmw_format", 1ms});
+  start_recording({true, true, {}, {}, "rmw_format", 1ms});
 
   std::this_thread::sleep_for(100ms);
   auto publisher = publisher_node->create_publisher<test_msgs::msg::Strings>(topic, 10);

@@ -36,7 +36,7 @@ TEST_F(RecordIntegrationTestFixture, published_messages_from_multiple_topics_are
   pub_man_.add_publisher<test_msgs::msg::Strings>(string_topic, string_message, 2);
   pub_man_.add_publisher<test_msgs::msg::Arrays>(array_topic, array_message, 2);
 
-  start_recording({true, false, {}, "rmw_format", 100ms});
+  start_recording({true, false, {}, {}, "rmw_format", 100ms});
   run_publishers();
   stop_recording();
 

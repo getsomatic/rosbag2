@@ -37,6 +37,8 @@ namespace rosbag2_transport
 
 class Rosbag2Node;
 
+class Player;
+
 class Rosbag2Transport
 {
 public:
@@ -84,14 +86,23 @@ public:
   ROSBAG2_TRANSPORT_PUBLIC
   void print_bag_info(const std::string & uri, const std::string & storage_id);
 
+    void play_async(const StorageOptions &storage_options, const PlayOptions &play_options);
+    void pause(bool pause);
+    void stop();
+    double time() const;
+    double speed() const;
+    void speed(double s);
+    void seek_forward(double time);
+
 private:
   std::shared_ptr<Rosbag2Node> setup_node(
     std::string node_prefix = "",
     const std::vector<std::string> & topic_remapping_options = {});
 
-  std::shared_ptr<rosbag2_cpp::Reader> reader_;
-  std::shared_ptr<rosbag2_cpp::Writer> writer_;
-  std::shared_ptr<rosbag2_cpp::Info> info_;
+    std::shared_ptr<rosbag2_transport::Player> player_ = nullptr;
+    std::shared_ptr<rosbag2_cpp::Reader> reader_ = nullptr;
+    std::shared_ptr<rosbag2_cpp::Writer> writer_ = nullptr;
+    std::shared_ptr<rosbag2_cpp::Info> info_ = nullptr;
 
   std::shared_ptr<Rosbag2Node> transport_node_;
 };

@@ -57,6 +57,7 @@ void Recorder::record(const RecordOptions & record_options)
   }
   serialization_format_ = record_options.rmw_serialization_format;
   ROSBAG2_TRANSPORT_LOG_INFO("Listening for topics...");
+    excludes_ = record_options.excludes;
   subscribe_topics(
     get_requested_or_available_topics(record_options.topics, record_options.include_hidden_topics));
 
@@ -127,15 +128,17 @@ Recorder::get_missing_topics(const std::unordered_map<std::string, std::string> 
 void Recorder::subscribe_topics(
   const std::unordered_map<std::string, std::string> & topics_and_types)
 {
-  for (const auto & topic_with_type : topics_and_types) {
-    subscribe_topic(
-      {
-        topic_with_type.first,
-        topic_with_type.second,
-        serialization_format_,
-        serialized_offered_qos_profiles_for_topic(topic_with_type.first)
-      });
-  }
+    for (const auto & topic_with_type : topics_and_types) {
+        if (std::find(excludes_.begin(), excludes_.end(), topic_with_type.first) == excludes_.end()) {
+            subscribe_topic(
+                    {
+                            topic_with_type.first,
+                            topic_with_type.second,
+                            serialization_format_,
+                            serialized_offered_qos_profiles_for_topic(topic_with_type.first)
+                    });
+        }
+    }
 }
 
 void Recorder::subscribe_topic(const rosbag2_storage::TopicMetadata & topic)

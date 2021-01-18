@@ -50,7 +50,21 @@ public:
     std::shared_ptr<rosbag2_cpp::Reader> reader,
     std::shared_ptr<Rosbag2Node> rosbag2_transport);
 
+    ~Player();
   void play(const PlayOptions & options);
+    void pause(bool pause);
+
+    bool finished();
+
+    void wait();
+
+    double time() const;
+
+    double speed() const;
+
+    void speed(double s);
+
+    void seek_forward(double time);
 
 private:
   void load_storage_content(const PlayOptions & options);
@@ -70,6 +84,18 @@ private:
   std::shared_ptr<Rosbag2Node> rosbag2_transport_;
   std::unordered_map<std::string, std::shared_ptr<GenericPublisher>> publishers_;
   std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides_;
+
+    double time_ = 0;
+    std::shared_ptr<ReplayableMessage> upcommingMsg_ = nullptr;
+    double speed_ = 1.0;
+    double skip_till_time_ = 0;
+
+    bool ready_ = false;
+    bool pause_ = false;
+    bool exit_ = false;
+    bool finished_ = false;
+    std::mutex mutex_;
+    std::thread queueThread_;
 };
 
 }  // namespace rosbag2_transport

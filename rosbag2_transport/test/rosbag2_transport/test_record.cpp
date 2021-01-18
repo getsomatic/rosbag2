@@ -39,7 +39,7 @@ TEST_F(RecordIntegrationTestFixture, published_messages_from_multiple_topics_are
   auto string_message = get_messages_strings()[1];
   std::string string_topic = "/string_topic";
 
-  start_recording({false, false, {string_topic, array_topic}, "rmw_format", 100ms});
+  start_recording({false, false, {string_topic, array_topic}, {}, "rmw_format", 100ms});
 
   pub_man_.add_publisher<test_msgs::msg::Strings>(
     string_topic, string_message, 2);
@@ -72,7 +72,7 @@ TEST_F(RecordIntegrationTestFixture, qos_is_stored_in_metadata)
 {
   auto string_message = get_messages_strings()[1];
   std::string topic = "/chatter";
-  start_recording({false, false, {topic}, "rmw_format", 100ms});
+  start_recording({false, false, {topic}, {}, "rmw_format", 100ms});
   pub_man_.add_publisher<test_msgs::msg::Strings>(topic, string_message, 2);
   run_publishers();
   stop_recording();
@@ -108,7 +108,7 @@ TEST_F(RecordIntegrationTestFixture, qos_is_stored_in_metadata)
 TEST_F(RecordIntegrationTestFixture, records_sensor_data)
 {
   std::string topic = "/string_topic";
-  start_recording({false, false, {topic}, "rmw_format", 100ms});
+  start_recording({false, false, {topic}, {}, "rmw_format", 100ms});
 
   auto publisher_node = std::make_shared<rclcpp::Node>("publisher_for_qos_test");
   auto publisher = publisher_node->create_publisher<test_msgs::msg::Strings>(
@@ -155,7 +155,7 @@ TEST_F(RecordIntegrationTestFixture, receives_latched_messages)
     publisher_transient_local->publish(msg);
     rclcpp::spin_some(publisher_node);
   }
-  start_recording({false, false, {topic}, "rmw_format", 100ms});
+  start_recording({false, false, {topic}, {}, "rmw_format", 100ms});
   auto & writer = static_cast<MockSequentialWriter &>(writer_->get_implementation_handle());
 
   // Takes ~100ms in local testing, 5s chosen as a very long timeout
@@ -187,7 +187,7 @@ TEST_F(RecordIntegrationTestFixture, mixed_qos_subscribes) {
   auto publisher_transient_local = publisher_node->create_publisher<test_msgs::msg::Strings>(
     topic, profile_transient_local);
 
-  start_recording({false, false, {topic}, "rmw_format", 100ms});
+  start_recording({false, false, {topic}, {}, "rmw_format", 100ms});
   // Takes ~100ms in local testing, 5s chosen as a very long timeout
   bool succeeded = rosbag2_test_common::spin_and_wait_for(
     std::chrono::seconds(5), publisher_node,
@@ -230,7 +230,7 @@ TEST_F(RecordIntegrationTestFixture, duration_and_noncompatibility_policies_mixe
     .liveliness(liveliness).liveliness_lease_duration(liveliness_lease_duration);
   auto publisher_liveliness = create_pub(profile_liveliness);
 
-  start_recording({false, false, {topic}, "rmw_format", 100ms});
+  start_recording({false, false, {topic}, {}, "rmw_format", 100ms});
   // Takes ~200ms in local testing, 5s chosen as a very long timeout
   bool succeeded = rosbag2_test_common::spin_and_wait_for(
     std::chrono::seconds(5), publisher_node,
@@ -253,7 +253,7 @@ TEST_F(RecordIntegrationTestFixture, topic_qos_overrides)
   const auto strict_topic = "/strict_topic";
 
   rosbag2_transport::RecordOptions record_options =
-  {false, false, {strict_topic}, "rmw_format", 100ms};
+  {false, false, {strict_topic}, {}, "rmw_format", 100ms};
   const auto profile_override = rclcpp::QoS{rclcpp::KeepAll()}
   .best_effort().durability_volatile().avoid_ros_namespace_conventions(false);
   std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides = {

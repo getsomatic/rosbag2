@@ -93,20 +93,37 @@ std::shared_ptr<Rosbag2Node> Rosbag2Transport::setup_node(
   return transport_node_;
 }
 
-void Rosbag2Transport::play(
-  const StorageOptions & storage_options, const PlayOptions & play_options)
-{
-  try {
-    auto transport_node =
-      setup_node(play_options.node_prefix, play_options.topic_remapping_options);
-    Player player(reader_, transport_node);
-    do {
-      reader_->open(storage_options, {"", rmw_get_serialization_format()});
-      player.play(play_options);
-    } while (rclcpp::ok() && play_options.loop);
-  } catch (std::runtime_error & e) {
-    ROSBAG2_TRANSPORT_LOG_ERROR("Failed to play: %s", e.what());
-  }
+void Rosbag2Transport::play_async(const StorageOptions &storage_options, const PlayOptions &play_options) {
+    ROSBAG2_TRANSPORT_LOG_INFO("rosbag_transport play_async");
+    if (player_) {
+        ROSBAG2_TRANSPORT_LOG_ERROR("previous player is still working");
+    }
+    try {
+        ROSBAG2_TRANSPORT_LOG_INFO("openning reader");
+        reader_->open(storage_options, {"", rmw_get_serialization_format()});
+        ROSBAG2_TRANSPORT_LOG_INFO("setting up node");
+        auto transport_node = setup_node(play_options.node_prefix);
+        player_ = std::make_shared<rosbag2_transport::Player>(reader_, transport_node);
+        ROSBAG2_TRANSPORT_LOG_INFO("player->play");
+        player_->play(play_options);
+    } catch (std::runtime_error &e) {
+        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to play: %s", e.what());
+    }
+}
+
+
+void Rosbag2Transport::play(const StorageOptions &storage_options, const PlayOptions &play_options) {
+    try {
+        reader_->open(storage_options, {"", rmw_get_serialization_format()});
+
+        auto transport_node = setup_node(play_options.node_prefix);
+
+        Player player(reader_, transport_node);
+        player.play(play_options);
+        player.wait();
+    } catch (std::runtime_error &e) {
+        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to play: %s", e.what());
+    }
 }
 
 void Rosbag2Transport::print_bag_info(const std::string & uri, const std::string & storage_id)
@@ -125,5 +142,39 @@ void Rosbag2Transport::print_bag_info(const std::string & uri, const std::string
 
   Formatter::format_bag_meta_data(metadata);
 }
+
+
+void Rosbag2Transport::pause(bool pause) {
+    if (player_)
+        player_->pause(pause);
+}
+
+void Rosbag2Transport::stop() {
+    player_ = nullptr;
+    ROSBAG2_TRANSPORT_LOG_INFO("player stopped");
+}
+
+double Rosbag2Transport::time() const {
+    if (player_)
+        return player_->time();
+    return 0;
+}
+
+double Rosbag2Transport::speed() const {
+    if (player_)
+        return player_->speed();
+    return 0;
+}
+
+void Rosbag2Transport::speed(double s) {
+    if (player_)
+        player_->speed(s);
+}
+
+void Rosbag2Transport::seek_forward(double time) {
+    if (player_)
+        player_->seek_forward(time);
+}
+
 
 }  // namespace rosbag2_transport

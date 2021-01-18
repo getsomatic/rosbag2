@@ -103,6 +103,8 @@ void Player::play(const PlayOptions & options)
   wait_for_filled_queue(options);
 
   play_messages_from_queue(options);
+    const std::lock_guard<std::mutex> lock(mutex_);
+    ready_ = true;
 }
 
 void Player::wait_for_filled_queue(const PlayOptions & options) const
@@ -131,13 +133,19 @@ void Player::load_storage_content(const PlayOptions & options)
     static_cast<size_t>(options.read_ahead_queue_size * read_ahead_lower_bound_percentage_);
   auto queue_upper_boundary = options.read_ahead_queue_size;
 
-  while (reader_->has_next() && rclcpp::ok()) {
-    if (message_queue_.size_approx() < queue_lower_boundary) {
-      enqueue_up_to_boundary(time_first_message, queue_upper_boundary);
-    } else {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    while (reader_->has_next() && rclcpp::ok()) {
+        if (message_queue_.size_approx() < queue_lower_boundary) {
+            enqueue_up_to_boundary(time_first_message, queue_upper_boundary);
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        mutex_.lock();
+        bool exit = exit_;
+        mutex_.unlock();
+
+        if (exit)
+            break;
     }
-  }
 }
 
 void Player::enqueue_up_to_boundary(const TimePoint & time_first_message, uint64_t boundary)
@@ -157,36 +165,81 @@ void Player::enqueue_up_to_boundary(const TimePoint & time_first_message, uint64
 
 void Player::play_messages_from_queue(const PlayOptions & options)
 {
-  start_time_ = std::chrono::system_clock::now();
-  do {
-    play_messages_until_queue_empty(options);
-    if (!is_storage_completely_loaded() && rclcpp::ok()) {
-      ROSBAG2_TRANSPORT_LOG_WARN(
-        "Message queue starved. Messages will be delayed. Consider "
-        "increasing the --read-ahead-queue-size option.");
+    ROSBAG2_TRANSPORT_LOG_INFO_STREAM("topics to filter size: " << options.topics_to_filter.size());
+    bool rdy = false;
+    ROSBAG2_TRANSPORT_LOG_INFO("waiting player is ready");
+    while (!rdy){ //todo: events
+        mutex_.lock();
+        rdy |= ready_;
+        mutex_.unlock();
+        std::this_thread::sleep_for (std::chrono::milliseconds (10));
     }
-  } while (!is_storage_completely_loaded() && rclcpp::ok());
+    ROSBAG2_TRANSPORT_LOG_INFO("player is ready");
+
+    time_ = 0;
+    bool pause;
+    bool exit;
+    do {
+        double stt = 0;
+        mutex_.lock();
+        pause = pause_;
+        exit = exit_;
+        stt = skip_till_time_;
+        mutex_.unlock();
+        if (exit || !rclcpp::ok())
+            break;
+        if (!pause){
+            int ms = 10;
+            double sec = 0.001 * ms;
+            if (stt > 0)
+                time_ = stt;
+            else
+                time_ += sec * speed_;
+            ReplayableMessage message;
+            std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+            auto timeDur = std::chrono::duration<double>(time_);
+            if (upcommingMsg_ && upcommingMsg_->time_since_start <= timeDur && rclcpp::ok()){
+                publishers_[upcommingMsg_->message->topic_name]->publish(upcommingMsg_->message->serialized_data);
+                upcommingMsg_ = nullptr;
+            }
+
+
+            while (!upcommingMsg_ && message_queue_.try_dequeue(message)){
+                if (message.time_since_start <= timeDur){
+                    if (stt == 0)
+                        publishers_[message.message->topic_name]->publish(message.message->serialized_data);
+                }
+                else {
+                    upcommingMsg_ = std::make_shared<ReplayableMessage>(message);
+                }
+            }
+
+            if (is_storage_completely_loaded() && !upcommingMsg_){
+                ROSBAG2_TRANSPORT_LOG_WARN_STREAM("playing is finished");
+                break;
+            }
+
+            if (!upcommingMsg_ && rclcpp::ok()) {
+                ROSBAG2_TRANSPORT_LOG_WARN("Message queue starved. Messages will be delayed. Consider "
+                                           "increasing the --read-ahead-queue-size option.");
+            }
+            if (stt > 0){
+                mutex_.lock();
+                skip_till_time_ = 0;
+                mutex_.unlock();
+            }
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            //ROSBAG2_TRANSPORT_LOG_WARN("paused");
+        }
+
+
+    } while (true);
+    mutex_.lock();
+    finished_ = true;
+    mutex_.unlock();
 }
 
-void Player::play_messages_until_queue_empty(const PlayOptions & options)
-{
-  ReplayableMessage message;
-
-  float rate = 1.0;
-  // Use rate if in valid range
-  if (options.rate > 0.0) {
-    rate = options.rate;
-  }
-
-  while (message_queue_.try_dequeue(message) && rclcpp::ok()) {
-    std::this_thread::sleep_until(
-      start_time_ + std::chrono::duration_cast<std::chrono::nanoseconds>(
-        1.0 / rate * message.time_since_start));
-    if (rclcpp::ok()) {
-      publishers_[message.message->topic_name]->publish(message.message->serialized_data);
-    }
-  }
-}
 
 void Player::prepare_publishers(const PlayOptions & options)
 {
@@ -202,6 +255,52 @@ void Player::prepare_publishers(const PlayOptions & options)
         topic.name, rosbag2_transport_->create_generic_publisher(
           topic.name, topic.type, topic_qos)));
   }
+}
+
+
+Player::~Player() {
+    ROSBAG2_TRANSPORT_LOG_INFO("Player destructor called");
+    {
+        const std::lock_guard<std::mutex> lock(mutex_);
+        exit_ = true;
+    }
+    ROSBAG2_TRANSPORT_LOG_INFO("waiting for queue thread");
+    queueThread_.join();
+    ROSBAG2_TRANSPORT_LOG_INFO("waiting for storage loading");
+    if (storage_loading_future_.valid())
+        storage_loading_future_.wait();
+    ROSBAG2_TRANSPORT_LOG_INFO("destructor is finished");
+}
+
+void Player::pause(bool pause) {
+    const std::lock_guard<std::mutex> lock(mutex_);
+    pause_ = pause;
+}
+
+bool Player::finished() {
+    const std::lock_guard<std::mutex> lock(mutex_);
+    return finished_;
+}
+
+void Player::wait() {
+    queueThread_.join();
+}
+
+double Player::time() const {
+    return time_;
+}
+
+void Player::seek_forward(double time) {
+    if (time > time_)
+        skip_till_time_ = time;
+}
+
+void Player::speed(double s) {
+    speed_ = s;
+}
+
+double Player::speed() const {
+    return speed_;
 }
 
 }  // namespace rosbag2_transport

@@ -100,6 +100,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
     "max_bagfile_size",
     "max_cache_size",
     "topics",
+    "excludes",
     "include_hidden_topics",
     "qos_profile_overrides",
     nullptr};
@@ -117,10 +118,11 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   unsigned long long max_bagfile_size = 0;  // NOLINT
   uint64_t max_cache_size = 0u;
   PyObject * topics = nullptr;
+    PyObject * excludes = nullptr;
   bool include_hidden_topics = false;
   if (
     !PyArg_ParseTupleAndKeywords(
-      args, kwargs, "ssssss|bbKKKObO", const_cast<char **>(kwlist),
+      args, kwargs, "ssssss|bbKKKOObO", const_cast<char **>(kwlist),
       &uri,
       &storage_id,
       &serilization_format,
@@ -133,6 +135,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
       &max_bagfile_size,
       &max_cache_size,
       &topics,
+      &excludes,
       &include_hidden_topics,
       &qos_profile_overrides
   ))
@@ -172,6 +175,17 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
       Py_DECREF(topic_iterator);
     }
   }
+    if (excludes) {
+        PyObject * exclude_iterator = PyObject_GetIter(excludes);
+        if (exclude_iterator != nullptr) {
+            PyObject * exclude;
+            while ((exclude = PyIter_Next(exclude_iterator))) {
+                record_options.excludes.emplace_back(PyUnicode_AsUTF8(exclude));
+                Py_DECREF(exclude);
+            }
+            Py_DECREF(exclude_iterator);
+        }
+    }
   record_options.rmw_serialization_format = std::string(serilization_format).empty() ?
     rmw_get_serialization_format() :
     serilization_format;
