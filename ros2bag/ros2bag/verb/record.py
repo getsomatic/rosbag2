@@ -54,6 +54,10 @@ class RecordVerb(VerbExtension):
             help='time in ms to wait between querying available topics for recording. '
                   'It has no effect if --no-discovery is enabled.'
         )
+
+        parser.add_argument(
+            '-x', '--excludes', default='', nargs='*', help='topics to be excluded from recording')
+
         parser.add_argument(
             '-b', '--max-bag-size', type=int, default=0,
             help='maximum size in bytes before the bagfile will be split. '
@@ -118,20 +122,37 @@ class RecordVerb(VerbExtension):
             #               level but on demand, right before first use.
             from rosbag2_transport import rosbag2_transport_py
 
-            rosbag2_transport_py.record(
-                uri=uri,
-                storage_id=args.storage,
-                serialization_format=args.serialization_format,
-                node_prefix=NODE_NAME_PREFIX,
-                compression_mode=args.compression_mode,
-                compression_format=args.compression_format,
-                all=True,
-                no_discovery=args.no_discovery,
-                polling_interval=args.polling_interval,
-                max_bagfile_size=args.max_bag_size,
-                max_cache_size=args.max_cache_size,
-                include_hidden_topics=args.include_hidden_topics,
-                qos_profile_overrides=qos_profile_overrides)
+            if args.excludes and len(args.excludes) > 0:
+                rosbag2_transport_py.record(
+                    uri=uri,
+                    storage_id=args.storage,
+                    serialization_format=args.serialization_format,
+                    node_prefix=NODE_NAME_PREFIX,
+                    compression_mode=args.compression_mode,
+                    compression_format=args.compression_format,
+                    all=True,
+                    no_discovery=args.no_discovery,
+                    polling_interval=args.polling_interval,
+                    max_bagfile_size=args.max_bag_size,
+                    max_cache_size=args.max_cache_size,
+                    include_hidden_topics=args.include_hidden_topics,
+                    qos_profile_overrides=qos_profile_overrides,
+                    excludes=args.excludes)
+            else:
+                rosbag2_transport_py.record(
+                    uri=uri,
+                    storage_id=args.storage,
+                    serialization_format=args.serialization_format,
+                    node_prefix=NODE_NAME_PREFIX,
+                    compression_mode=args.compression_mode,
+                    compression_format=args.compression_format,
+                    all=True,
+                    no_discovery=args.no_discovery,
+                    polling_interval=args.polling_interval,
+                    max_bagfile_size=args.max_bag_size,
+                    max_cache_size=args.max_cache_size,
+                    include_hidden_topics=args.include_hidden_topics,
+                    qos_profile_overrides=qos_profile_overrides)
         elif args.topics and len(args.topics) > 0:
             # NOTE(hidmic): in merged install workspaces on Windows, Python entrypoint lookups
             #               combined with constrained environments (as imposed by colcon test)
