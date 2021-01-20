@@ -32,71 +32,78 @@
 
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
-namespace rosbag2_cpp
-{
-class Reader;
+namespace rosbag2_cpp {
+    class Reader;
 }  // namespace rosbag2_cpp
 
-namespace rosbag2_transport
-{
+namespace rosbag2_transport {
 
-class GenericPublisher;
-class Rosbag2Node;
+    class GenericPublisher;
 
-class Player
-{
-public:
-  explicit Player(
-    std::shared_ptr<rosbag2_cpp::Reader> reader,
-    std::shared_ptr<Rosbag2Node> rosbag2_transport);
+    class Rosbag2Node;
 
-    ~Player();
-  void play(const PlayOptions & options);
-    void pause(bool pause);
+    class Player {
+    public:
+        explicit Player(
+                std::shared_ptr<rosbag2_cpp::Reader> reader,
+                std::shared_ptr<Rosbag2Node> rosbag2_transport);
 
-    bool finished();
+        ~Player();
 
-    void wait();
+        void play(const PlayOptions &options);
 
-    double time() const;
+        void pause(bool pause);
 
-    double speed() const;
+        bool finished();
 
-    void speed(double s);
+        void wait();
 
-    void seek_forward(double time);
+        double time() const;
 
-private:
-  void load_storage_content(const PlayOptions & options);
-  bool is_storage_completely_loaded() const;
-  void enqueue_up_to_boundary(const TimePoint & time_first_message, uint64_t boundary);
-  void wait_for_filled_queue(const PlayOptions & options) const;
-  void play_messages_from_queue(const PlayOptions & options);
-  void play_messages_until_queue_empty(const PlayOptions & options);
-  void prepare_publishers(const PlayOptions & options);
-  static constexpr double read_ahead_lower_bound_percentage_ = 0.9;
-  static const std::chrono::milliseconds queue_read_wait_period_;
+        double speed() const;
 
-  std::shared_ptr<rosbag2_cpp::Reader> reader_;
-  moodycamel::ReaderWriterQueue<ReplayableMessage> message_queue_;
-  std::chrono::time_point<std::chrono::system_clock> start_time_;
-  mutable std::future<void> storage_loading_future_;
-  std::shared_ptr<Rosbag2Node> rosbag2_transport_;
-  std::unordered_map<std::string, std::shared_ptr<GenericPublisher>> publishers_;
-  std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides_;
+        void speed(double s);
 
-    double time_ = 0;
-    std::shared_ptr<ReplayableMessage> upcommingMsg_ = nullptr;
-    double speed_ = 1.0;
-    double skip_till_time_ = 0;
+        void seek_forward(double time);
 
-    bool ready_ = false;
-    bool pause_ = false;
-    bool exit_ = false;
-    bool finished_ = false;
-    std::mutex mutex_;
-    std::thread queueThread_;
-};
+    private:
+        void load_storage_content(const PlayOptions &options);
+
+        bool is_storage_completely_loaded() const;
+
+        void enqueue_up_to_boundary(const TimePoint &time_first_message, uint64_t boundary);
+
+        void wait_for_filled_queue(const PlayOptions &options) const;
+
+        void play_messages_from_queue(const PlayOptions &options);
+
+        void play_messages_from_queue_no_param();
+
+        void prepare_publishers(const PlayOptions &options);
+
+        static constexpr double read_ahead_lower_bound_percentage_ = 0.9;
+        static const std::chrono::milliseconds queue_read_wait_period_;
+
+        std::shared_ptr<rosbag2_cpp::Reader> reader_;
+        moodycamel::ReaderWriterQueue<ReplayableMessage> message_queue_;
+        std::chrono::time_point<std::chrono::system_clock> start_time_;
+        mutable std::future<void> storage_loading_future_;
+        std::shared_ptr<Rosbag2Node> rosbag2_transport_;
+        std::unordered_map<std::string, std::shared_ptr<GenericPublisher>> publishers_;
+        std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides_;
+
+        double time_ = 0;
+        std::shared_ptr<ReplayableMessage> upcommingMsg_ = nullptr;
+        double speed_ = 1.0;
+        double skip_till_time_ = 0;
+
+        bool ready_ = false;
+        bool pause_ = false;
+        bool exit_ = false;
+        bool finished_ = false;
+        std::mutex mutex_;
+        std::thread queueThread_;
+    };
 
 }  // namespace rosbag2_transport
 

@@ -78,7 +78,8 @@ Player::queue_read_wait_period_ = std::chrono::milliseconds(100);
 
 Player::Player(
   std::shared_ptr<rosbag2_cpp::Reader> reader, std::shared_ptr<Rosbag2Node> rosbag2_transport)
-: reader_(std::move(reader)), rosbag2_transport_(rosbag2_transport)
+: reader_(std::move(reader)), rosbag2_transport_(rosbag2_transport),
+  queueThread_(std::bind(&Player::play_messages_from_queue_no_param, this))
 {}
 
 bool Player::is_storage_completely_loaded() const
@@ -102,7 +103,7 @@ void Player::play(const PlayOptions & options)
 
   wait_for_filled_queue(options);
 
-  play_messages_from_queue(options);
+  //play_messages_from_queue(options);
     const std::lock_guard<std::mutex> lock(mutex_);
     ready_ = true;
 }
@@ -162,6 +163,13 @@ void Player::enqueue_up_to_boundary(const TimePoint & time_first_message, uint64
     message_queue_.enqueue(message);
   }
 }
+
+void Player::play_messages_from_queue_no_param() {
+    PlayOptions options;
+    play_messages_from_queue(options);
+}
+
+
 
 void Player::play_messages_from_queue(const PlayOptions & options)
 {
