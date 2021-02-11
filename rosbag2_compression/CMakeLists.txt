@@ -6,9 +6,9 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 # Windows supplies macros for min and max by default. We should only use min and max from stl
@@ -81,7 +81,7 @@ ament_export_libraries(${PROJECT_NAME} ${PROJECT_NAME}_zstd)
 ament_export_targets(export_${PROJECT_NAME})
 # order matters here, first vendor, then zstd
 ament_export_dependencies(rcpputils rcutils rosbag2_cpp rosbag2_storage zstd_vendor zstd)
-
+if(FALSE)
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ament_lint_auto REQUIRED)
@@ -145,5 +145,5 @@ if(BUILD_TESTING)
   target_link_libraries(test_sequential_compression_writer ${PROJECT_NAME})
   ament_target_dependencies(test_sequential_compression_writer rosbag2_cpp)
 endif()
-
+endif()
 ament_package()

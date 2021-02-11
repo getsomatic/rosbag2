@@ -8,9 +8,9 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 # Windows supplies macros for min and max by default. We should only use min and max from stl
@@ -25,6 +25,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 
+if(FALSE)
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ament_lint_auto REQUIRED)
@@ -87,6 +88,7 @@ if(BUILD_TESTING)
         test_msgs)
     endif()
   endif()
+endif()
 endif()
 
 ament_package()
