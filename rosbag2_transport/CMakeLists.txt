@@ -32,6 +32,8 @@ find_package(rosbag2_storage REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 find_package(shared_queues_vendor REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
+find_package(rosbag2_storage_default_plugins REQUIRED)
+find_package(bcr_msgs REQUIRED COMPONENTS std_msgs geometry_msgs sensor_msgs)
 
 add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/player.cpp
@@ -42,7 +44,6 @@ add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/recorder.cpp
         src/rosbag2_transport/rosbag2_node.cpp
         src/rosbag2_transport/rosbag2_transport.cpp
-        src/rosbag2_transport/bcr_parser.cpp
         )
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -56,6 +57,8 @@ ament_target_dependencies(${PROJECT_NAME}
   rosbag2_cpp
   shared_queues_vendor
   yaml_cpp_vendor
+        rosbag2_storage_default_plugins
+        bcr_msgs
 )
 
 include(cmake/configure_python.cmake)
@@ -70,6 +73,7 @@ ament_target_dependencies(rosbag2_transport_py
   rosbag2_cpp
   rosbag2_storage
   rmw
+  bcr_msgs
 )
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

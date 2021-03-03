@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <rosbag2_transport/bag_info.hh>
 
 #include "rcl/graph.h"
 
@@ -38,6 +39,8 @@
 #include "qos.hpp"
 #include "rosbag2_node.hpp"
 #include "replayable_message.hpp"
+#include <bcr_msgs/msg/robot_info.hpp>
+#include <rosbag2_transport/storage_options.hpp>
 
 namespace
 {
@@ -78,8 +81,7 @@ Player::queue_read_wait_period_ = std::chrono::milliseconds(100);
 
 Player::Player(
   std::shared_ptr<rosbag2_cpp::Reader> reader, std::shared_ptr<Rosbag2Node> rosbag2_transport)
-: reader_(std::move(reader)), rosbag2_transport_(rosbag2_transport),
-  queueThread_(std::bind(&Player::play_messages_from_queue_no_param, this))
+: reader_(std::move(reader)), rosbag2_transport_(rosbag2_transport)
 {}
 
 bool Player::is_storage_completely_loaded() const
@@ -92,10 +94,16 @@ bool Player::is_storage_completely_loaded() const
   return !storage_loading_future_.valid();
 }
 
-void Player::play(const PlayOptions & options)
+void Player::finished_callback(const std::function<void()> & finishedCallback)
+{
+  finishedCallback_ = finishedCallback;
+}
+
+void Player::play(const PlayOptions & options, double time)
 {
   topic_qos_profile_overrides_ = options.topic_qos_profile_overrides;
   prepare_publishers(options);
+  time_ = 0;
 
   storage_loading_future_ = std::async(
     std::launch::async,
@@ -103,9 +111,38 @@ void Player::play(const PlayOptions & options)
 
   wait_for_filled_queue(options);
 
-  //play_messages_from_queue(options);
+  seek_forward(time);
+  queueThread_ = std::make_shared<std::thread>([this] { play_messages_from_queue_no_param(); });
+  const std::lock_guard<std::mutex> lock(mutex_);
+  ready_ = true;
+  finished_ = false;
+}
+
+void Player::play(const std::vector<StorageOptions> &storage_options, const PlayOptions &options, double time) {
+    topic_qos_profile_overrides_ = options.topic_qos_profile_overrides;
+    prepare_publishers(options);
+    time_ = 0;
+
+    storage_loading_future_ = std::async(
+            std::launch::async,
+            [this, options, storage_options]() {
+                loading_next_bag_ = true;
+                for(size_t i = 1; i < storage_options.size(); i++) {
+                    ROSBAG2_TRANSPORT_LOG_INFO("opening reader");
+                    load_storage_content(options);
+                    reader_->open(storage_options[i], {"", rmw_get_serialization_format()});
+                }
+                load_storage_content(options);
+                loading_next_bag_ = false;
+            });
+
+    wait_for_filled_queue(options);
+
+    seek_forward(time);
+    queueThread_ = std::make_shared<std::thread>([this] { play_messages_from_queue_no_param(); });
     const std::lock_guard<std::mutex> lock(mutex_);
     ready_ = true;
+    finished_ = false;
 }
 
 void Player::wait_for_filled_queue(const PlayOptions & options) const
@@ -133,23 +170,24 @@ void Player::load_storage_content(const PlayOptions & options)
   auto queue_lower_boundary =
     static_cast<size_t>(options.read_ahead_queue_size * read_ahead_lower_bound_percentage_);
   auto queue_upper_boundary = options.read_ahead_queue_size;
-
-    while (reader_->has_next() && rclcpp::ok()) {
-        if (message_queue_.size_approx() < queue_lower_boundary) {
-            enqueue_up_to_boundary(time_first_message, queue_upper_boundary);
-        } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        mutex_.lock();
-        bool exit = exit_;
-        mutex_.unlock();
-
-        if (exit)
-            break;
+  ReplayableMessage last_msg;
+  while (reader_->has_next() && rclcpp::ok()) {
+    if (message_queue_.size_approx() < queue_lower_boundary) {
+      last_msg = enqueue_up_to_boundary(time_first_message, queue_upper_boundary);
+      last_msgs_time_ = last_msg.time_since_start;
+    } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    mutex_.lock();
+    bool exit = exit_;
+    mutex_.unlock();
+
+    if (exit)
+        break;
+  }
 }
 
-void Player::enqueue_up_to_boundary(const TimePoint & time_first_message, uint64_t boundary)
+ReplayableMessage Player::enqueue_up_to_boundary(const TimePoint & time_first_message, uint64_t boundary)
 {
   ReplayableMessage message;
   for (size_t i = message_queue_.size_approx(); i < boundary; i++) {
@@ -158,10 +196,11 @@ void Player::enqueue_up_to_boundary(const TimePoint & time_first_message, uint64
     }
     message.message = reader_->read_next();
     message.time_since_start =
-      TimePoint(std::chrono::nanoseconds(message.message->time_stamp)) - time_first_message;
+      TimePoint(std::chrono::nanoseconds(message.message->time_stamp)) - time_first_message + last_msgs_time_;
 
     message_queue_.enqueue(message);
   }
+    return message;
 }
 
 void Player::play_messages_from_queue_no_param() {
@@ -181,6 +220,13 @@ void Player::play_messages_from_queue(const PlayOptions & options)
         rdy |= ready_;
         mutex_.unlock();
         std::this_thread::sleep_for (std::chrono::milliseconds (10));
+        if(exit_) {
+            mutex_.lock();
+            finished_ = true;
+            finishedCallback_();
+            mutex_.unlock();
+            return;
+        }
     }
     ROSBAG2_TRANSPORT_LOG_INFO("player is ready");
 
@@ -206,28 +252,28 @@ void Player::play_messages_from_queue(const PlayOptions & options)
             ReplayableMessage message;
             std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             auto timeDur = std::chrono::duration<double>(time_);
-            if (upcommingMsg_ && upcommingMsg_->time_since_start <= timeDur && rclcpp::ok()){
-                publishers_[upcommingMsg_->message->topic_name]->publish(upcommingMsg_->message->serialized_data);
-                upcommingMsg_ = nullptr;
+            if (upcomming_msg_ && upcomming_msg_->time_since_start <= timeDur && rclcpp::ok()){
+                publishers_[upcomming_msg_->message->topic_name]->publish(upcomming_msg_->message->serialized_data);
+                upcomming_msg_ = nullptr;
             }
 
 
-            while (!upcommingMsg_ && message_queue_.try_dequeue(message)){
+            while (!upcomming_msg_ && message_queue_.try_dequeue(message)){
                 if (message.time_since_start <= timeDur){
                     if (stt == 0)
                         publishers_[message.message->topic_name]->publish(message.message->serialized_data);
                 }
                 else {
-                    upcommingMsg_ = std::make_shared<ReplayableMessage>(message);
+                    upcomming_msg_ = std::make_shared<ReplayableMessage>(message);
                 }
             }
 
-            if (is_storage_completely_loaded() && !upcommingMsg_){
+            if (is_storage_completely_loaded() && !upcomming_msg_ && !loading_next_bag_){
                 ROSBAG2_TRANSPORT_LOG_WARN_STREAM("playing is finished");
                 break;
             }
 
-            if (!upcommingMsg_ && rclcpp::ok()) {
+            if (!upcomming_msg_ && rclcpp::ok()) {
                 ROSBAG2_TRANSPORT_LOG_WARN("Message queue starved. Messages will be delayed. Consider "
                                            "increasing the --read-ahead-queue-size option.");
             }
@@ -245,6 +291,7 @@ void Player::play_messages_from_queue(const PlayOptions & options)
     } while (true);
     mutex_.lock();
     finished_ = true;
+    finishedCallback_();
     mutex_.unlock();
 }
 
@@ -273,7 +320,8 @@ Player::~Player() {
         exit_ = true;
     }
     ROSBAG2_TRANSPORT_LOG_INFO("waiting for queue thread");
-    queueThread_.join();
+    if(queueThread_ && queueThread_->joinable())
+        queueThread_->join();
     ROSBAG2_TRANSPORT_LOG_INFO("waiting for storage loading");
     if (storage_loading_future_.valid())
         storage_loading_future_.wait();
@@ -291,7 +339,8 @@ bool Player::finished() {
 }
 
 void Player::wait() {
-    queueThread_.join();
+    if(queueThread_ && queueThread_->joinable())
+        queueThread_->join();
 }
 
 double Player::time() const {
@@ -309,6 +358,70 @@ void Player::speed(double s) {
 
 double Player::speed() const {
     return speed_;
+}
+
+BagInfo Player::parse_info(const StorageOptions& option) {
+    BagInfo info;
+
+    const auto sqlite_storage = std::make_unique<rosbag2_storage_plugins::SqliteStorage>();
+    reader_->open(option, {"", rmw_get_serialization_format()});
+
+    double nano = 1e-9;
+    info.Start = reader_->get_metadata().starting_time.time_since_epoch().count() * nano;
+
+    info.End = info.Start + reader_->get_metadata().duration.count() * nano;
+
+    rosbag2_storage::StorageFilter filter;
+    for(const auto& topicAndType : reader_->get_all_topics_and_types())
+        if(topicAndType.type == "bcr_msgs/msg/RobotInfo")
+            filter.topics.push_back(topicAndType.name);
+    reader_->set_filter(filter);
+
+    BagInfo::Event *unknownEvent = nullptr;
+    while(reader_->has_next()) {
+        try {
+            auto next = reader_->read_next();
+            rclcpp::Serialization<bcr_msgs::msg::RobotInfo> serialization;
+            auto *msg = new rclcpp::SerializedMessage;
+            msg->get_rcl_serialized_message() = *next->serialized_data;
+            bcr_msgs::msg::RobotInfo::SharedPtr robotInfoPtr(new bcr_msgs::msg::RobotInfo);
+            serialization.deserialize_message(msg, robotInfoPtr.get());
+
+            BagInfo::Event event{};
+            event.Start = robotInfoPtr->started * nano;
+            event.End = robotInfoPtr->finished * nano;
+
+            if(unknownEvent) {
+                unknownEvent->End = event.Start;
+                //info.Events.insert(*unknownEvent);
+                delete unknownEvent;
+                unknownEvent = nullptr;
+            }
+
+            event.Type = static_cast<enum BagInfo::Event::Type>(robotInfoPtr->status_code);
+            event.Message = robotInfoPtr->plan_name + "\n" + '(' +  std::to_string(robotInfoPtr->task_number) +
+                    ')' + robotInfoPtr->task_name;
+            info.Events.insert(event);
+        } catch(...) {
+            if(!unknownEvent) {
+                unknownEvent = new BagInfo::Event;
+                if (!info.Events.empty())
+                    unknownEvent->Start = info.Events.end()->End;
+                else
+                    unknownEvent->Start = info.Start;
+                unknownEvent->Message = "Fog of cataclysm";
+                unknownEvent->Type = BagInfo::Event::Type::Unknown;
+            }
+            ROSBAG2_TRANSPORT_LOG_WARN("Memory gap, filling with unknown event");
+        }
+    }
+    if(unknownEvent) {
+        unknownEvent->End = info.End;
+        //info.Events.insert(*unknownEvent);
+        delete unknownEvent;
+    }
+
+    return info;
 }
 
 }  // namespace rosbag2_transport

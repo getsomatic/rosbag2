@@ -24,6 +24,8 @@
 #include "rosbag2_transport/record_options.hpp"
 #include "rosbag2_transport/storage_options.hpp"
 #include "rosbag2_transport/visibility_control.hpp"
+#include "rosbag2_transport/bag_info.hh"
+#include "rosbag2_cpp/readers/sequential_reader.hpp"
 
 namespace rosbag2_cpp
 {
@@ -86,7 +88,8 @@ public:
   ROSBAG2_TRANSPORT_PUBLIC
   void print_bag_info(const std::string & uri, const std::string & storage_id);
 
-    void play_async(const StorageOptions &storage_options, const PlayOptions &play_options);
+    void play_async(const StorageOptions &storage_options, const PlayOptions &play_options, double time);
+    void play_async(const std::vector<StorageOptions> &storage_options, const PlayOptions &play_options, double time);
     void pause(bool pause);
     void stop();
     double time() const;
@@ -94,10 +97,13 @@ public:
     void speed(double s);
     void seek_forward(double time);
 
+    BagInfo parse_info(const StorageOptions& option);
 private:
   std::shared_ptr<Rosbag2Node> setup_node(
     std::string node_prefix = "",
     const std::vector<std::string> & topic_remapping_options = {});
+
+    std::unique_ptr<rosbag2_cpp::reader_interfaces::BaseReaderInterface> readerUniqueImpl_;
 
     std::shared_ptr<rosbag2_transport::Player> player_ = nullptr;
     std::shared_ptr<rosbag2_cpp::Reader> reader_ = nullptr;
