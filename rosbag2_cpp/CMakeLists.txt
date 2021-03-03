@@ -6,9 +6,9 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -103,6 +103,7 @@ ament_export_dependencies(pluginlib
   rosidl_typesupport_introspection_cpp
 )
 
+if (FALSE)
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ament_lint_auto REQUIRED)
@@ -193,5 +194,5 @@ if(BUILD_TESTING)
     target_link_libraries(test_multifile_reader ${PROJECT_NAME})
   endif()
 endif()
-
+endif()
 ament_package()

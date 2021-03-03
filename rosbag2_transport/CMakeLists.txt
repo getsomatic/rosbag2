@@ -6,9 +6,9 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -34,6 +34,7 @@ find_package(shared_queues_vendor REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
 find_package(rosbag2_storage_default_plugins REQUIRED)
 find_package(bcr_msgs REQUIRED COMPONENTS std_msgs geometry_msgs sensor_msgs)
+find_package(bcr_core)
 
 add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/player.cpp
@@ -59,6 +60,7 @@ ament_target_dependencies(${PROJECT_NAME}
   yaml_cpp_vendor
         rosbag2_storage_default_plugins
         bcr_msgs
+  bcr_core
 )
 
 include(cmake/configure_python.cmake)
@@ -188,6 +190,7 @@ function(create_tests_for_rmw_implementation)
     AMENT_DEPS test_msgs rosbag2_test_common)
 endfunction()
 
+if (FALSE)
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ament_index_cpp REQUIRED)
@@ -200,5 +203,5 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
   call_for_each_rmw_implementation(create_tests_for_rmw_implementation)
 endif()
-
+endif()
 ament_package()
