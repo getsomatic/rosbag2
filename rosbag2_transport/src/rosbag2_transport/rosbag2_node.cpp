@@ -36,6 +36,9 @@ namespace rosbag2_transport
 Rosbag2Node::Rosbag2Node(const std::string & node_name)
 : rclcpp::Node(node_name)
 {}
+// TODO: create discovery_server subscription
+// TODO: than discovery_server topics can replace this->get_topic_names_and_types()
+// TODO: and all other CLI functional like [required, excluded, hidden...] topics will be the same
 
 Rosbag2Node::Rosbag2Node(const std::string & node_name, const rclcpp::NodeOptions & options)
 : rclcpp::Node(node_name, options)
@@ -146,7 +149,7 @@ std::unordered_map<std::string, std::string> Rosbag2Node::get_topics_with_types(
     }
   }
 
-  auto topics_and_types = this->get_topic_names_and_types();
+  auto topics_and_types = this->get_topic_names_and_types(); // TODO: replace with get topics from discovery server
 
   std::map<std::string, std::vector<std::string>> filtered_topics_and_types;
   for (const auto & topic_and_type : topics_and_types) {
@@ -166,7 +169,7 @@ std::unordered_map<std::string, std::string>
 Rosbag2Node::get_all_topics_with_types(bool include_hidden_topics)
 {
   return filter_topics_with_more_than_one_type(
-    this->get_topic_names_and_types(), include_hidden_topics);
+    this->get_topic_names_and_types(), include_hidden_topics); // TODO: replace with get topics from discovery server
 }
 
 std::unordered_map<std::string, std::string> Rosbag2Node::filter_topics_with_more_than_one_type(

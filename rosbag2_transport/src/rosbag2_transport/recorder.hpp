@@ -31,6 +31,8 @@
 
 #include "rosbag2_transport/record_options.hpp"
 
+#include "bcr_msgs/msg/topic_names_and_types.hpp"
+
 namespace rosbag2_cpp
 {
 class Writer;
@@ -39,6 +41,7 @@ class Writer;
 namespace rosbag2_transport
 {
 
+using TopicNamesAndTypesMsg = bcr_msgs::msg::TopicNamesAndTypes;
 class GenericSubscription;
 class Rosbag2Node;
 
@@ -85,6 +88,8 @@ private:
 
   void record_messages() const;
 
+  void TopicNamesAndTypesCallback(const TopicNamesAndTypesMsg::SharedPtr msg);
+
   /**
    * Find the QoS profile that should be used for subscribing.
    *
@@ -107,7 +112,11 @@ private:
   std::unordered_set<std::string> topics_warned_about_incompatibility_;
   std::string serialization_format_;
   std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides_;
-    std::vector<std::string> excludes_;
+  std::vector<std::string> excludes_;
+
+  rclcpp::Subscription<TopicNamesAndTypesMsg>::SharedPtr TopicNamesAndTypesSubscriber_;
+  std::unordered_map<std::string, std::string> somatic_topic_names_and_types_{};
+
 };
 
 }  // namespace rosbag2_transport
