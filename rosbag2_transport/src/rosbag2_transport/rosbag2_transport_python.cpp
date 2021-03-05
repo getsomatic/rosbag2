@@ -103,6 +103,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
     "excludes",
     "include_hidden_topics",
     "qos_profile_overrides",
+    "use_discovery_server",
     nullptr};
 
   char * uri = nullptr;
@@ -120,9 +121,10 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   PyObject * topics = nullptr;
     PyObject * excludes = nullptr;
   bool include_hidden_topics = false;
+  bool use_discovery_server = false;
   if (
     !PyArg_ParseTupleAndKeywords(
-      args, kwargs, "ssssss|bbKKKOObO", const_cast<char **>(kwlist),
+      args, kwargs, "ssssss|bbKKKOObOb", const_cast<char **>(kwlist), // s~str, b~bool, add new cli args types here
       &uri,
       &storage_id,
       &serilization_format,
@@ -137,7 +139,8 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
       &topics,
       &excludes,
       &include_hidden_topics,
-      &qos_profile_overrides
+      &qos_profile_overrides,
+      &use_discovery_server
   ))
   {
     return nullptr;
@@ -154,6 +157,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   record_options.compression_mode = std::string(compression_mode);
   record_options.compression_format = compression_format;
   record_options.include_hidden_topics = include_hidden_topics;
+  record_options.use_discovery_server = use_discovery_server;
 
   rosbag2_compression::CompressionOptions compression_options{
     record_options.compression_format,

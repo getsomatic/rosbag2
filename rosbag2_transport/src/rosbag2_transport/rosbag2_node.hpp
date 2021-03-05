@@ -30,8 +30,12 @@
 #include "generic_publisher.hpp"
 #include "generic_subscription.hpp"
 
+#include "bcr_msgs/msg/topic_names_and_types.hpp"
+
+
 namespace rosbag2_transport
 {
+    using TopicNamesAndTypesMsg = bcr_msgs::msg::TopicNamesAndTypes;
 
 class Rosbag2Node : public rclcpp::Node
 {
@@ -54,22 +58,28 @@ public:
     std::function<void(std::shared_ptr<rclcpp::SerializedMessage>)> callback);
 
   std::unordered_map<std::string, std::string>
-  get_topics_with_types(const std::vector<std::string> & topic_names);
+  get_topics_with_types(const std::vector<std::string> & topic_names, bool use_discovery_server = false);
 
   std::string
   expand_topic_name(const std::string & topic_name);
 
   std::unordered_map<std::string, std::string>
-  get_all_topics_with_types(bool include_hidden_topics = false);
+  get_all_topics_with_types(bool include_hidden_topics = false, bool use_discovery_server = false);
 
   std::unordered_map<std::string, std::string>
   filter_topics_with_more_than_one_type(
     const std::map<std::string, std::vector<std::string>> & topics_and_types,
     bool include_hidden_topics = false);
 
+  void TopicNamesAndTypesCallback(const TopicNamesAndTypesMsg::SharedPtr msg);
+  rclcpp::Subscription<TopicNamesAndTypesMsg>::SharedPtr TopicNamesAndTypesSubscriber_;
+
 private:
   std::shared_ptr<rcpputils::SharedLibrary> library_generic_subscriptor_;
   std::shared_ptr<rcpputils::SharedLibrary> library_generic_publisher_;
+  // always types_vector.size() == 1
+  std::map<std::string, std::vector<std::string>> discovery_server_topic_names_and_types_{};
+
 };
 
 }  // namespace rosbag2_transport

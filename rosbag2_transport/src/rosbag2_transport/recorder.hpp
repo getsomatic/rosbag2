@@ -31,8 +31,6 @@
 
 #include "rosbag2_transport/record_options.hpp"
 
-#include "bcr_msgs/msg/topic_names_and_types.hpp"
-
 namespace rosbag2_cpp
 {
 class Writer;
@@ -41,7 +39,6 @@ class Writer;
 namespace rosbag2_transport
 {
 
-using TopicNamesAndTypesMsg = bcr_msgs::msg::TopicNamesAndTypes;
 class GenericSubscription;
 class Rosbag2Node;
 
@@ -68,12 +65,13 @@ private:
   void topics_discovery(
     std::chrono::milliseconds topic_polling_interval,
     const std::vector<std::string> & requested_topics = {},
-    bool include_hidden_topics = false);
+    bool include_hidden_topics = false, bool use_discovery_server = false);
 
   std::unordered_map<std::string, std::string>
   get_requested_or_available_topics(
     const std::vector<std::string> & requested_topics,
-    bool include_hidden_topics = false);
+    bool include_hidden_topics = false,
+    bool use_discovery_server = false);
 
   std::unordered_map<std::string, std::string>
   get_missing_topics(const std::unordered_map<std::string, std::string> & all_topics);
@@ -88,7 +86,6 @@ private:
 
   void record_messages() const;
 
-  void TopicNamesAndTypesCallback(const TopicNamesAndTypesMsg::SharedPtr msg);
 
   /**
    * Find the QoS profile that should be used for subscribing.
@@ -113,9 +110,6 @@ private:
   std::string serialization_format_;
   std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides_;
   std::vector<std::string> excludes_;
-
-  rclcpp::Subscription<TopicNamesAndTypesMsg>::SharedPtr TopicNamesAndTypesSubscriber_;
-  std::unordered_map<std::string, std::string> somatic_topic_names_and_types_{};
 
 };
 

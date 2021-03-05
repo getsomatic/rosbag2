@@ -36,13 +36,20 @@ namespace rosbag2_transport
 Rosbag2Node::Rosbag2Node(const std::string & node_name)
 : rclcpp::Node(node_name)
 {}
-// TODO: create discovery_server subscription
-// TODO: than discovery_server topics can replace this->get_topic_names_and_types()
-// TODO: and all other CLI functional like [required, excluded, hidden...] topics will be the same
 
 Rosbag2Node::Rosbag2Node(const std::string & node_name, const rclcpp::NodeOptions & options)
 : rclcpp::Node(node_name, options)
 {}
+
+
+void Rosbag2Node::TopicNamesAndTypesCallback(const TopicNamesAndTypesMsg::SharedPtr msg){
+    discovery_server_topic_names_and_types_.clear();
+    ROSBAG2_TRANSPORT_LOG_DEBUG_STREAM("_____DISCOVERY_SERVER_TOPICS_____");
+    for (int i=0; i<msg->topic_num; i++){
+        discovery_server_topic_names_and_types_[msg->topic_names[i]] = {msg->topic_types[i]};
+        ROSBAG2_TRANSPORT_LOG_DEBUG_STREAM(msg->topic_names[i] << ": [" << msg->topic_types[i] <<"]\n");
+    }
+}
 
 std::shared_ptr<GenericPublisher> Rosbag2Node::create_generic_publisher(
   const std::string & topic, const std::string & type, const rclcpp::QoS & qos)
@@ -139,7 +146,7 @@ std::string Rosbag2Node::expand_topic_name(const std::string & topic_name)
 }
 
 std::unordered_map<std::string, std::string> Rosbag2Node::get_topics_with_types(
-  const std::vector<std::string> & topic_names)
+  const std::vector<std::string> & topic_names, bool use_discovery_server)
 {
   std::vector<std::string> sanitized_topic_names;
   for (const auto & topic_name : topic_names) {
@@ -149,7 +156,7 @@ std::unordered_map<std::string, std::string> Rosbag2Node::get_topics_with_types(
     }
   }
 
-  auto topics_and_types = this->get_topic_names_and_types(); // TODO: replace with get topics from discovery server
+  auto topics_and_types = use_discovery_server ? discovery_server_topic_names_and_types_ : this->get_topic_names_and_types();
 
   std::map<std::string, std::vector<std::string>> filtered_topics_and_types;
   for (const auto & topic_and_type : topics_and_types) {
@@ -166,10 +173,11 @@ std::unordered_map<std::string, std::string> Rosbag2Node::get_topics_with_types(
 }
 
 std::unordered_map<std::string, std::string>
-Rosbag2Node::get_all_topics_with_types(bool include_hidden_topics)
+Rosbag2Node::get_all_topics_with_types(bool include_hidden_topics, bool use_discovery_server)
 {
-  return filter_topics_with_more_than_one_type(
-    this->get_topic_names_and_types(), include_hidden_topics); // TODO: replace with get topics from discovery server
+    return filter_topics_with_more_than_one_type(
+        use_discovery_server ? discovery_server_topic_names_and_types_ : this->get_topic_names_and_types(),
+        include_hidden_topics);
 }
 
 std::unordered_map<std::string, std::string> Rosbag2Node::filter_topics_with_more_than_one_type(

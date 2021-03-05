@@ -86,6 +86,11 @@ class RecordVerb(VerbExtension):
             '--qos-profile-overrides-path', type=FileType('r'),
             help='Path to a yaml file defining overrides of the QoS profile for specific topics.'
         )
+        parser.add_argument(
+            '--use-discovery-server', action='store_true',
+            help='use discovery_server, not simple_discovery mechanism'
+        )
+
         self._subparser = parser
 
     def main(self, *, args):  # noqa: D102
@@ -137,7 +142,8 @@ class RecordVerb(VerbExtension):
                     max_cache_size=args.max_cache_size,
                     include_hidden_topics=args.include_hidden_topics,
                     qos_profile_overrides=qos_profile_overrides,
-                    excludes=args.excludes)
+                    excludes=args.excludes,
+                    use_discovery_server=args.use_discovery_server)
             else:
                 rosbag2_transport_py.record(
                     uri=uri,
@@ -152,7 +158,9 @@ class RecordVerb(VerbExtension):
                     max_bagfile_size=args.max_bag_size,
                     max_cache_size=args.max_cache_size,
                     include_hidden_topics=args.include_hidden_topics,
-                    qos_profile_overrides=qos_profile_overrides)
+                    qos_profile_overrides=qos_profile_overrides,
+                    use_discovery_server=args.use_discovery_server)
+
         elif args.topics and len(args.topics) > 0:
             # NOTE(hidmic): in merged install workspaces on Windows, Python entrypoint lookups
             #               combined with constrained environments (as imposed by colcon test)
@@ -174,7 +182,8 @@ class RecordVerb(VerbExtension):
                 max_cache_size=args.max_cache_size,
                 topics=args.topics,
                 include_hidden_topics=args.include_hidden_topics,
-                qos_profile_overrides=qos_profile_overrides)
+                qos_profile_overrides=qos_profile_overrides,
+                use_discovery_server=args.use_discovery_server)
         else:
             self._subparser.print_help()
 

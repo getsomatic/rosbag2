@@ -38,6 +38,7 @@ public:
   std::string compression_format = "";
   std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides{};
   bool include_hidden_topics = false;
+  bool use_discovery_server = false;
 };
 
 }  // namespace rosbag2_transport

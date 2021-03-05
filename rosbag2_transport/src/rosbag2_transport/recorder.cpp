@@ -46,30 +46,23 @@
 #include "bcr_core/tools/logging.hh"
 #include <bcr_core/tools/communication_config.hh>
 
+
 namespace rosbag2_transport
 {
 Recorder::Recorder(std::shared_ptr<rosbag2_cpp::Writer> writer, std::shared_ptr<Rosbag2Node> node)
 : writer_(std::move(writer)), node_(std::move(node)) {
     bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
-    bcr::core::tools::CommunicationConfig communication(node_->get_node_parameters_interface());
-    TopicNamesAndTypesSubscriber_ = node_->create_subscription<TopicNamesAndTypesMsg>(
-        communication.TopicNamesAndTypesTopic(), 1, std::bind(&Recorder::TopicNamesAndTypesCallback, this, std::placeholders::_1)
-    );
-}
-
-
-void Recorder::TopicNamesAndTypesCallback(const TopicNamesAndTypesMsg::SharedPtr msg){
-    somatic_topic_names_and_types_.clear();
-    for (int i=0; i<msg->topic_num; i++){
-        if(std::find(excludes_.begin(), excludes_.end(), msg->topic_names[i]) == excludes_.end()) {
-            somatic_topic_names_and_types_[msg->topic_names[i]] = msg->topic_types[i];
-        }
-    }
 }
 
 
 void Recorder::record(const RecordOptions & record_options)
 {
+    // subscribe on discovery server topics
+    bcr::core::tools::CommunicationConfig communication(node_->get_node_parameters_interface());
+    node_->TopicNamesAndTypesSubscriber_ = node_->create_subscription<TopicNamesAndTypesMsg>(
+        communication.TopicNamesAndTypesTopic(), 1, std::bind(&Rosbag2Node::TopicNamesAndTypesCallback, node_, std::placeholders::_1)
+    );
+
   topic_qos_profile_overrides_ = record_options.topic_qos_profile_overrides;
   if (record_options.rmw_serialization_format.empty()) {
     throw std::runtime_error("No serialization format specified!");
@@ -78,7 +71,7 @@ void Recorder::record(const RecordOptions & record_options)
   ROSBAG2_TRANSPORT_LOG_INFO("Listening for topics...");
   excludes_ = record_options.excludes;
   subscribe_topics(
-      get_requested_or_available_topics(record_options.topics, record_options.include_hidden_topics));
+      get_requested_or_available_topics(record_options.topics, record_options.include_hidden_topics, record_options.use_discovery_server));
 
   std::future<void> discovery_future;
   if (!record_options.is_discovery_disabled) {
@@ -86,7 +79,8 @@ void Recorder::record(const RecordOptions & record_options)
       &Recorder::topics_discovery, this,
       record_options.topic_polling_interval,
       record_options.topics,
-      record_options.include_hidden_topics);
+      record_options.include_hidden_topics,
+      record_options.use_discovery_server);
     discovery_future = std::async(std::launch::async, discovery);
   }
 
@@ -102,11 +96,12 @@ void Recorder::record(const RecordOptions & record_options)
 void Recorder::topics_discovery(
   std::chrono::milliseconds topic_polling_interval,
   const std::vector<std::string> & requested_topics,
-  bool include_hidden_topics)
+  bool include_hidden_topics,
+  bool use_discovery_server)
 {
   while (rclcpp::ok()) {
     auto topics_to_subscribe =
-      get_requested_or_available_topics(requested_topics, include_hidden_topics);
+      get_requested_or_available_topics(requested_topics, include_hidden_topics, use_discovery_server);
     for (const auto & topic_and_type : topics_to_subscribe) {
       warn_if_new_qos_for_subscribed_topic(topic_and_type.first);
     }
@@ -126,15 +121,12 @@ void Recorder::topics_discovery(
 std::unordered_map<std::string, std::string>
 Recorder::get_requested_or_available_topics(
   const std::vector<std::string> & requested_topics,
-  bool include_hidden_topics)
+  bool include_hidden_topics, bool use_discovery_server)
 {
-    // unused parameters
-    ROSBAG2_TRANSPORT_LOG_DEBUG_STREAM(requested_topics.empty());
-    ROSBAG2_TRANSPORT_LOG_DEBUG_STREAM(include_hidden_topics);
-    //return requested_topics.empty() ?
-    //    node_->get_all_topics_with_types(include_hidden_topics) :
-    //    node_->get_topics_with_types(requested_topics);
-    return somatic_topic_names_and_types_;
+    ROSBAG2_TRANSPORT_LOG_INFO_STREAM("use_discovery_server: " << use_discovery_server << std::endl);
+    return requested_topics.empty() ?
+        node_->get_all_topics_with_types(include_hidden_topics, use_discovery_server) :
+        node_->get_topics_with_types(requested_topics, use_discovery_server);
 }
 
 std::unordered_map<std::string, std::string>
