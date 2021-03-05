@@ -80,7 +80,7 @@ void Rosbag2Transport::record(
     Recorder recorder(writer_, transport_node);
     recorder.record(record_options);
   } catch (std::runtime_error & e) {
-    ROSBAG2_TRANSPORT_LOG_ERROR("Failed to record: %s", e.what());
+    ROSBAG2_TRANSPORT_LOG_ERROR("Error to record: %s", e.what());
   }
 }
 
@@ -109,7 +109,7 @@ void Rosbag2Transport::play_async(const StorageOptions &storage_options, const P
         ROSBAG2_TRANSPORT_LOG_INFO("player->play");
         player_->play(play_options, time);
     } catch (std::runtime_error &e) {
-        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to play: %s", e.what());
+        ROSBAG2_TRANSPORT_LOG_ERROR("Error to play: %s", e.what());
     }
 }
 
@@ -133,7 +133,7 @@ void Rosbag2Transport::play(const StorageOptions &storage_options, const PlayOpt
         player.play(play_options);
         player.wait();
     } catch (std::runtime_error &e) {
-        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to play: %s", e.what());
+        ROSBAG2_TRANSPORT_LOG_ERROR("Error to play: %s", e.what());
     }
 }
 
@@ -187,7 +187,7 @@ void Rosbag2Transport::seek_forward(double time) {
         player_->seek_forward(time);
 }
 
-BagInfo Rosbag2Transport::parse_info(const StorageOptions& option) {
+BagInfo Rosbag2Transport::parse_info(const StorageOptions& option, const ParseOptions& parseOptions) {
     ROSBAG2_TRANSPORT_LOG_INFO("rosbag_transport parse_info");
     try {
         PlayOptions play_options;
@@ -196,9 +196,10 @@ BagInfo Rosbag2Transport::parse_info(const StorageOptions& option) {
         auto transport_node = setup_node(play_options.node_prefix);
         player_ = std::make_shared<rosbag2_transport::Player>(reader_, transport_node);
         ROSBAG2_TRANSPORT_LOG_INFO("player->parse");
-        return player_->parse_info(option);
+
+        return player_->parse_info(option, parseOptions);
     } catch (std::runtime_error &e) {
-        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to parse: %s", e.what());
+        ROSBAG2_TRANSPORT_LOG_ERROR("Error to parse: %s", e.what());
         return BagInfo();
     }
 }

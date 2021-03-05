@@ -25,6 +25,7 @@
 #include <rosbag2_transport/storage_options.hpp>
 
 #include <rosbag2_storage_default_plugins/sqlite/sqlite_storage.hpp>
+#include <rosbag2_transport/parse_options.hh>
 
 #include "moodycamel/readerwriterqueue.h"
 
@@ -74,7 +75,7 @@ namespace rosbag2_transport {
 
         void seek_forward(double time);
 
-        BagInfo parse_info(const StorageOptions& option);
+        BagInfo parse_info(const StorageOptions& storageOptions, const ParseOptions& parseOptions);
     private:
         void load_storage_content(const PlayOptions &options);
 

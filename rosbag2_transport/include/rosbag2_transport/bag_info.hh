@@ -15,10 +15,12 @@ namespace rosbag2_transport {
                 Ok,
                 OkPlanStart,
                 OkPlanFinished,
-                Failed,
+                Error,
                 Paused,
                 Stopped,
-                Unknown
+                Unknown,
+                Warn,
+                Fatal
             } Type;
             double Start;
             double End;
@@ -27,6 +29,7 @@ namespace rosbag2_transport {
             bool operator<(const Event& e) const{
                 return Start < e.Start;
             }
+            uint8_t Priority = 0;
         };
         double Start;
         double End;

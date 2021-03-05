@@ -26,6 +26,7 @@
 #include "rosbag2_transport/visibility_control.hpp"
 #include "rosbag2_transport/bag_info.hh"
 #include "rosbag2_cpp/readers/sequential_reader.hpp"
+#include "parse_options.hh"
 
 namespace rosbag2_cpp
 {
@@ -97,7 +98,7 @@ public:
     void speed(double s);
     void seek_forward(double time);
 
-    BagInfo parse_info(const StorageOptions& option);
+    BagInfo parse_info(const StorageOptions& option, const ParseOptions& parseOptions);
 private:
   std::shared_ptr<Rosbag2Node> setup_node(
     std::string node_prefix = "",

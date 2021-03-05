@@ -45,6 +45,7 @@ add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/recorder.cpp
         src/rosbag2_transport/rosbag2_node.cpp
         src/rosbag2_transport/rosbag2_transport.cpp
+        src/rosbag2_transport/bcr_msgs_to_events.cc
         )
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

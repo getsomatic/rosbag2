@@ -40,7 +40,7 @@
 #include "rosbag2_node.hpp"
 #include "replayable_message.hpp"
 #include <bcr_msgs/msg/robot_info.hpp>
-#include <rosbag2_transport/storage_options.hpp>
+#include <rosbag2_transport/parse_options.hh>
 
 namespace
 {
@@ -360,11 +360,11 @@ double Player::speed() const {
     return speed_;
 }
 
-BagInfo Player::parse_info(const StorageOptions& option) {
+BagInfo Player::parse_info(const StorageOptions& storageOptions, const ParseOptions& parseOptions) {
     BagInfo info;
 
     const auto sqlite_storage = std::make_unique<rosbag2_storage_plugins::SqliteStorage>();
-    reader_->open(option, {"", rmw_get_serialization_format()});
+    reader_->open(storageOptions, {"", rmw_get_serialization_format()});
 
     double nano = 1e-9;
     info.Start = reader_->get_metadata().starting_time.time_since_epoch().count() * nano;
@@ -372,54 +372,47 @@ BagInfo Player::parse_info(const StorageOptions& option) {
     info.End = info.Start + reader_->get_metadata().duration.count() * nano;
 
     rosbag2_storage::StorageFilter filter;
+    std::map<std::string, std::string> topicToType;
     for(const auto& topicAndType : reader_->get_all_topics_and_types())
-        if(topicAndType.type == "bcr_msgs/msg/RobotInfo")
+        if(parseOptions.ContainsType(topicAndType.type)) {
             filter.topics.push_back(topicAndType.name);
+            topicToType.insert({topicAndType.name, topicAndType.type});
+        }
     reader_->set_filter(filter);
-
-    BagInfo::Event *unknownEvent = nullptr;
+    if(topicToType.empty())
+        return info;
+//    BagInfo::Event *unknownEvent = nullptr;
     while(reader_->has_next()) {
         try {
             auto next = reader_->read_next();
-            rclcpp::Serialization<bcr_msgs::msg::RobotInfo> serialization;
-            auto *msg = new rclcpp::SerializedMessage;
-            msg->get_rcl_serialized_message() = *next->serialized_data;
-            bcr_msgs::msg::RobotInfo::SharedPtr robotInfoPtr(new bcr_msgs::msg::RobotInfo);
-            serialization.deserialize_message(msg, robotInfoPtr.get());
 
-            BagInfo::Event event{};
-            event.Start = robotInfoPtr->started * nano;
-            event.End = robotInfoPtr->finished * nano;
+            auto events = parseOptions.Convert(topicToType[next->topic_name], next);
+            info.Events.insert(events.begin(), events.end());
 
-            if(unknownEvent) {
-                unknownEvent->End = event.Start;
-                //info.Events.insert(*unknownEvent);
-                delete unknownEvent;
-                unknownEvent = nullptr;
-            }
-
-            event.Type = static_cast<enum BagInfo::Event::Type>(robotInfoPtr->status_code);
-            event.Message = robotInfoPtr->plan_name + "\n" + '(' +  std::to_string(robotInfoPtr->task_number) +
-                    ')' + robotInfoPtr->task_name;
-            info.Events.insert(event);
+//            if(unknownEvent) {
+//                unknownEvent->End = events.Start;
+//                //info.Events.insert(*unknownEvent);
+//                delete unknownEvent;
+//                unknownEvent = nullptr;
+//            }
         } catch(...) {
-            if(!unknownEvent) {
-                unknownEvent = new BagInfo::Event;
-                if (!info.Events.empty())
-                    unknownEvent->Start = info.Events.end()->End;
-                else
-                    unknownEvent->Start = info.Start;
-                unknownEvent->Message = "Fog of cataclysm";
-                unknownEvent->Type = BagInfo::Event::Type::Unknown;
-            }
+//            if(!unknownEvent) {
+//                unknownEvent = new BagInfo::Event;
+//                if (!info.Events.empty())
+//                    unknownEvent->Start = info.Events.end()->End;
+//                else
+//                    unknownEvent->Start = info.Start;
+//                unknownEvent->Message = "Fog of cataclysm";
+//                unknownEvent->Type = BagInfo::Event::Type::Unknown;
+//            }
             ROSBAG2_TRANSPORT_LOG_WARN("Memory gap, filling with unknown event");
         }
     }
-    if(unknownEvent) {
-        unknownEvent->End = info.End;
-        //info.Events.insert(*unknownEvent);
-        delete unknownEvent;
-    }
+//    if(unknownEvent) {
+//        unknownEvent->End = info.End;
+//        //info.Events.insert(*unknownEvent);
+//        delete unknownEvent;
+//    }
 
     return info;
 }
