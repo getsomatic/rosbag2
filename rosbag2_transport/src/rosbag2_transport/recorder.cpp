@@ -123,7 +123,7 @@ Recorder::get_requested_or_available_topics(
   const std::vector<std::string> & requested_topics,
   bool include_hidden_topics, bool use_discovery_server)
 {
-    ROSBAG2_TRANSPORT_LOG_INFO_STREAM("use_discovery_server: " << use_discovery_server << std::endl);
+    ROSBAG2_TRANSPORT_LOG_DEBUG_STREAM("use_discovery_server: " << use_discovery_server << std::endl);
     return requested_topics.empty() ?
         node_->get_all_topics_with_types(include_hidden_topics, use_discovery_server) :
         node_->get_topics_with_types(requested_topics, use_discovery_server);
