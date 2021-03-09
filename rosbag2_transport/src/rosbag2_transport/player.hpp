@@ -24,7 +24,6 @@
 #include <rosbag2_transport/bag_info.hh>
 #include <rosbag2_transport/storage_options.hpp>
 
-#include <rosbag2_storage_default_plugins/sqlite/sqlite_storage.hpp>
 #include <rosbag2_transport/parse_options.hh>
 
 #include "moodycamel/readerwriterqueue.h"
