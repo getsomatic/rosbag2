@@ -32,6 +32,8 @@ find_package(rosbag2_storage REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 find_package(shared_queues_vendor REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
+find_package(rosbag2_storage_default_plugins REQUIRED)
+
 
 add_library(${PROJECT_NAME} SHARED
   src/rosbag2_transport/player.cpp
@@ -54,7 +56,8 @@ ament_target_dependencies(${PROJECT_NAME}
   rosbag2_cpp
   shared_queues_vendor
   yaml_cpp_vendor
-)
+  rosbag2_storage_default_plugins
+  )
 
 include(cmake/configure_python.cmake)
 ament_python_install_package(${PROJECT_NAME})
