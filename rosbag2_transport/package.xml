@@ -21,6 +21,7 @@
   <depend>shared_queues_vendor</depend>
   <depend>yaml_cpp_vendor</depend>
   <depend>bcr_core</depend>
+  <depend>rosbag2_storage_default_plugins</depend>
 
   <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>ament_index_cpp</test_depend>

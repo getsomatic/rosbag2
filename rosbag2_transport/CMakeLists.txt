@@ -34,6 +34,8 @@ find_package(shared_queues_vendor REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
 find_package(bcr_msgs REQUIRED COMPONENTS std_msgs geometry_msgs sensor_msgs)
 find_package(bcr_core)
+find_package(rosbag2_storage_default_plugins REQUIRED)
+
 
 add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/player.cpp
@@ -60,6 +62,7 @@ ament_target_dependencies(${PROJECT_NAME}
   yaml_cpp_vendor
   bcr_msgs
   bcr_core
+  rosbag2_storage_default_plugins
 )
 
 include(cmake/configure_python.cmake)
