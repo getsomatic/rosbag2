@@ -23,7 +23,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "rcutils/time.h"
+#include <ctime>
 
 #include "rosbag2_cpp/info.hpp"
 #include "rosbag2_cpp/reader.hpp"
@@ -38,6 +38,8 @@
 #include "player.hpp"
 #include "recorder.hpp"
 #include "rosbag2_node.hpp"
+
+#include "rclcpp/serialization.hpp"
 
 namespace rosbag2_transport
 {
@@ -78,7 +80,7 @@ void Rosbag2Transport::record(
     Recorder recorder(writer_, transport_node);
     recorder.record(record_options);
   } catch (std::runtime_error & e) {
-    ROSBAG2_TRANSPORT_LOG_ERROR("Failed to record: %s", e.what());
+    ROSBAG2_TRANSPORT_LOG_ERROR("Error to record: %s", e.what());
   }
 }
 
@@ -93,7 +95,7 @@ std::shared_ptr<Rosbag2Node> Rosbag2Transport::setup_node(
   return transport_node_;
 }
 
-void Rosbag2Transport::play_async(const StorageOptions &storage_options, const PlayOptions &play_options) {
+void Rosbag2Transport::play_async(const StorageOptions &storage_options, const PlayOptions &play_options, double time) {
     ROSBAG2_TRANSPORT_LOG_INFO("rosbag_transport play_async");
     if (player_) {
         ROSBAG2_TRANSPORT_LOG_ERROR("previous player is still working");
@@ -105,12 +107,21 @@ void Rosbag2Transport::play_async(const StorageOptions &storage_options, const P
         auto transport_node = setup_node(play_options.node_prefix);
         player_ = std::make_shared<rosbag2_transport::Player>(reader_, transport_node);
         ROSBAG2_TRANSPORT_LOG_INFO("player->play");
-        player_->play(play_options);
+        player_->play(play_options, time);
     } catch (std::runtime_error &e) {
-        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to play: %s", e.what());
+        ROSBAG2_TRANSPORT_LOG_ERROR("Error to play: %s", e.what());
     }
 }
 
+void Rosbag2Transport::play_async(const std::vector<StorageOptions> &storage_options, const PlayOptions &play_options, double time) {
+    ROSBAG2_TRANSPORT_LOG_INFO("openning reader");
+    reader_->open(storage_options[0], {"", rmw_get_serialization_format()});
+    ROSBAG2_TRANSPORT_LOG_INFO("setting up node");
+    auto transport_node = setup_node(play_options.node_prefix);
+    player_ = std::make_shared<rosbag2_transport::Player>(reader_, transport_node);
+    ROSBAG2_TRANSPORT_LOG_INFO("player->play");
+    player_->play(storage_options, play_options, time);
+}
 
 void Rosbag2Transport::play(const StorageOptions &storage_options, const PlayOptions &play_options) {
     try {
@@ -122,7 +133,7 @@ void Rosbag2Transport::play(const StorageOptions &storage_options, const PlayOpt
         player.play(play_options);
         player.wait();
     } catch (std::runtime_error &e) {
-        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to play: %s", e.what());
+        ROSBAG2_TRANSPORT_LOG_ERROR("Error to play: %s", e.what());
     }
 }
 
@@ -174,6 +185,23 @@ void Rosbag2Transport::speed(double s) {
 void Rosbag2Transport::seek_forward(double time) {
     if (player_)
         player_->seek_forward(time);
+}
+
+BagInfo Rosbag2Transport::parse_info(const StorageOptions& option, const ParseOptions& parseOptions) {
+    ROSBAG2_TRANSPORT_LOG_INFO("rosbag_transport parse_info");
+    try {
+        PlayOptions play_options;
+        ROSBAG2_TRANSPORT_LOG_INFO("openning reader");
+        ROSBAG2_TRANSPORT_LOG_INFO("setting up node");
+        auto transport_node = setup_node(play_options.node_prefix);
+        player_ = std::make_shared<rosbag2_transport::Player>(reader_, transport_node);
+        ROSBAG2_TRANSPORT_LOG_INFO("player->parse");
+
+        return player_->parse_info(option, parseOptions);
+    } catch (std::runtime_error &e) {
+        ROSBAG2_TRANSPORT_LOG_ERROR("Error to parse: %s", e.what());
+        return BagInfo();
+    }
 }
 
 

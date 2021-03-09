@@ -88,7 +88,7 @@ std::shared_ptr<rcutils_string_map_t> get_initialized_string_map()
   *substitutions_map = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t map_init = rcutils_string_map_init(substitutions_map, 0, allocator);
   if (map_init != RCUTILS_RET_OK) {
-    ROSBAG2_TRANSPORT_LOG_ERROR("Failed to initialize string map within rcutils.");
+    ROSBAG2_TRANSPORT_LOG_ERROR("Error to initialize string map within rcutils.");
     return std::shared_ptr<rcutils_string_map_t>();
   }
   return std::shared_ptr<rcutils_string_map_t>(
@@ -97,7 +97,7 @@ std::shared_ptr<rcutils_string_map_t> get_initialized_string_map()
       rcl_ret_t cleanup = rcutils_string_map_fini(map);
       delete map;
       if (cleanup != RCL_RET_OK) {
-        ROSBAG2_TRANSPORT_LOG_ERROR("Failed to deallocate string map when expanding topic.");
+        ROSBAG2_TRANSPORT_LOG_ERROR("Error to deallocate string map when expanding topic.");
       }
     });
 }
@@ -107,12 +107,12 @@ std::string Rosbag2Node::expand_topic_name(const std::string & topic_name)
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto substitutions_map = get_initialized_string_map();
   if (!substitutions_map) {
-    ROSBAG2_TRANSPORT_LOG_ERROR("Failed to initialize string map within rcutils.");
+    ROSBAG2_TRANSPORT_LOG_ERROR("Error to initialize string map within rcutils.");
     return "";
   }
   rcl_ret_t ret = rcl_get_default_topic_name_substitutions(substitutions_map.get());
   if (ret != RCL_RET_OK) {
-    ROSBAG2_TRANSPORT_LOG_ERROR("Failed to initialize map with default values.");
+    ROSBAG2_TRANSPORT_LOG_ERROR("Error to initialize map with default values.");
     return "";
   }
   char * expanded_topic_name = nullptr;
@@ -126,7 +126,7 @@ std::string Rosbag2Node::expand_topic_name(const std::string & topic_name)
 
   if (ret != RCL_RET_OK) {
     ROSBAG2_TRANSPORT_LOG_ERROR_STREAM(
-      "Failed to expand topic name " << topic_name << " with error: " <<
+      "Error to expand topic name " << topic_name << " with error: " <<
         rcutils_get_error_string().str);
     return "";
   }

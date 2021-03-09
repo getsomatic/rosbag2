@@ -6,9 +6,9 @@ if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
 endif()
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -25,6 +25,7 @@ find_package(pluginlib REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
+find_package(bcr_core REQUIRED)
 
 add_library(
   ${PROJECT_NAME}
@@ -43,7 +44,8 @@ ament_target_dependencies(
   pluginlib
   rcpputils
   rcutils
-  yaml_cpp_vendor)
+  yaml_cpp_vendor
+  bcr_core)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -70,8 +72,8 @@ install(
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 ament_export_targets(export_${PROJECT_NAME})
-ament_export_dependencies(pluginlib yaml_cpp_vendor)
-
+ament_export_dependencies(pluginlib yaml_cpp_vendor bcr_core)
+if(FALSE)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
@@ -113,6 +115,7 @@ if(BUILD_TESTING)
     target_link_libraries(test_metadata_serialization ${PROJECT_NAME})
     ament_target_dependencies(test_metadata_serialization rosbag2_test_common)
   endif()
+endif()
 endif()
 
 ament_package(

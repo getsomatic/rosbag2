@@ -43,11 +43,13 @@
 #ifdef _WIN32
 # pragma warning(pop)
 #endif
+#include "bcr_core/tools/logging.hh"
+
 
 namespace rosbag2_transport
 {
 Recorder::Recorder(std::shared_ptr<rosbag2_cpp::Writer> writer, std::shared_ptr<Rosbag2Node> node)
-: writer_(std::move(writer)), node_(std::move(node)) {}
+: writer_(std::move(writer)), node_(std::move(node)) {bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();}
 
 void Recorder::record(const RecordOptions & record_options)
 {
@@ -178,7 +180,7 @@ Recorder::create_subscription(
           delete msg;
           if (fini_return != RCUTILS_RET_OK) {
             ROSBAG2_TRANSPORT_LOG_ERROR_STREAM(
-              "Failed to destroy serialized message: " << rcutils_get_error_string().str);
+              "Error to destroy serialized message: " << rcutils_get_error_string().str);
           }
         });
       *bag_message->serialized_data = message->release_rcl_serialized_message();

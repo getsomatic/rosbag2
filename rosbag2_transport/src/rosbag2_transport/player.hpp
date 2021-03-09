@@ -21,6 +21,11 @@
 #include <queue>
 #include <string>
 #include <unordered_map>
+#include <rosbag2_transport/bag_info.hh>
+#include <rosbag2_transport/storage_options.hpp>
+
+#include <rosbag2_storage_default_plugins/sqlite/sqlite_storage.hpp>
+#include <rosbag2_transport/parse_options.hh>
 
 #include "moodycamel/readerwriterqueue.h"
 
@@ -50,7 +55,11 @@ namespace rosbag2_transport {
 
         ~Player();
 
-        void play(const PlayOptions &options);
+        void play(const PlayOptions &options, double time = 0.0);
+
+        void play(const std::vector<StorageOptions> &storage_options, const PlayOptions &options, double time = 0.0);
+
+        void finished_callback(const std::function<void()> & finishedCallback = [](){});
 
         void pause(bool pause);
 
@@ -66,12 +75,13 @@ namespace rosbag2_transport {
 
         void seek_forward(double time);
 
+        BagInfo parse_info(const StorageOptions& storageOptions, const ParseOptions& parseOptions);
     private:
         void load_storage_content(const PlayOptions &options);
 
         bool is_storage_completely_loaded() const;
 
-        void enqueue_up_to_boundary(const TimePoint &time_first_message, uint64_t boundary);
+        ReplayableMessage enqueue_up_to_boundary(const TimePoint &time_first_message, uint64_t boundary);
 
         void wait_for_filled_queue(const PlayOptions &options) const;
 
@@ -91,18 +101,22 @@ namespace rosbag2_transport {
         std::shared_ptr<Rosbag2Node> rosbag2_transport_;
         std::unordered_map<std::string, std::shared_ptr<GenericPublisher>> publishers_;
         std::unordered_map<std::string, rclcpp::QoS> topic_qos_profile_overrides_;
-
         double time_ = 0;
-        std::shared_ptr<ReplayableMessage> upcommingMsg_ = nullptr;
+        std::shared_ptr<ReplayableMessage> upcomming_msg_ = nullptr;
         double speed_ = 1.0;
         double skip_till_time_ = 0;
 
-        bool ready_ = false;
-        bool pause_ = false;
-        bool exit_ = false;
-        bool finished_ = false;
+        std::chrono::nanoseconds last_msgs_time_ = std::chrono::nanoseconds(0);
+
+        std::atomic_bool ready_ {false};
+        std::atomic_bool pause_ {false};
+        std::atomic_bool exit_ {false};
+        std::atomic_bool finished_ {false};
+        std::atomic_bool loading_next_bag_ {false};
         std::mutex mutex_;
-        std::thread queueThread_;
+        std::shared_ptr<std::thread> queueThread_;
+
+        std::function<void()> finishedCallback_ = [](){};
     };
 
 }  // namespace rosbag2_transport
