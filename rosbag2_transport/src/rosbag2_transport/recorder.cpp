@@ -195,7 +195,7 @@ Recorder::create_subscription(
           delete msg;
           if (fini_return != RCUTILS_RET_OK) {
             ROSBAG2_TRANSPORT_LOG_ERROR_STREAM(
-              "Failed to destroy serialized message: " << rcutils_get_error_string().str);
+              "Error to destroy serialized message: " << rcutils_get_error_string().str);
           }
         });
       *bag_message->serialized_data = message->release_rcl_serialized_message();
