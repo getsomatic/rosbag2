@@ -45,7 +45,7 @@ Rosbag2Node::Rosbag2Node(const std::string & node_name, const rclcpp::NodeOption
 void Rosbag2Node::TopicNamesAndTypesCallback(const TopicNamesAndTypesMsg::SharedPtr msg){
     discovery_server_topic_names_and_types_.clear();
     ROSBAG2_TRANSPORT_LOG_DEBUG_STREAM("_____DISCOVERY_SERVER_TOPICS_____");
-    for (int i=0; i<msg->topic_num; i++){
+    for (unsigned long i=0; i<msg->topic_names.size(); i++){
         discovery_server_topic_names_and_types_[msg->topic_names[i]] = {msg->topic_types[i]};
         ROSBAG2_TRANSPORT_LOG_DEBUG_STREAM(msg->topic_names[i] << ": [" << msg->topic_types[i] <<"]\n");
     }
