@@ -30,16 +30,16 @@ namespace rosbag2_transport {
             event.Priority = 2;
             auto statusCode = (bcr::core::tools::status::Status)status.status;
             switch (statusCode) {
-                case bcr::core::tools::status::OK:
+                case bcr::core::tools::status::Status::OK:
                     event.Type = BagInfo::Event::Ok;
                     break;
-                case bcr::core::tools::status::WARN:
+                case bcr::core::tools::status::Status::WARN:
                     event.Type = BagInfo::Event::Warn;
                     break;
-                case bcr::core::tools::status::ERROR:
+                case bcr::core::tools::status::Status::PAUSE:
                     event.Type = BagInfo::Event::Error;
                     break;
-                case bcr::core::tools::status::FATAL:
+                case bcr::core::tools::status::Status::STOP:
                     event.Type = BagInfo::Event::Fatal;
                     break;
             }
