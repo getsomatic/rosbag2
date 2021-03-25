@@ -21,25 +21,25 @@ namespace rosbag2_transport {
 
     std::vector<BagInfo::Event> LidarProcessorResultEvents::Transform() const {
         std::vector<BagInfo::Event> events;
-        double nano = 1e-9;
         for(const auto& status : msgPtr_->statuses) {
             BagInfo::Event event{};
             event.Message = status.name + '\n' + status.value;
-            event.Start = status.time * nano;
+            event.Start = status.time;
             event.End = status.time + 0.01;
-            event.Priority = 2;
             auto statusCode = (bcr::core::tools::status::Status)status.status;
             switch (statusCode) {
                 case bcr::core::tools::status::Status::OK:
-                    event.Type = BagInfo::Event::Ok;
-                    break;
+                    continue;
                 case bcr::core::tools::status::Status::WARN:
+                    event.Priority = 3;
                     event.Type = BagInfo::Event::Warn;
                     break;
                 case bcr::core::tools::status::Status::PAUSE:
-                    event.Type = BagInfo::Event::Error;
+                    event.Priority = 2;
+                    event.Type = BagInfo::Event::Paused;
                     break;
                 case bcr::core::tools::status::Status::STOP:
+                    event.Priority = 2;
                     event.Type = BagInfo::Event::Fatal;
                     break;
             }

@@ -16,6 +16,8 @@ namespace rosbag2_transport {
 
         [[nodiscard]] std::vector<BagInfo::Event> Convert(const std::string& typeName, const std::shared_ptr<rosbag2_storage::SerializedBagMessage>& sbm) const {
             auto conv = Convertors.find(typeName);
+            if(conv == Convertors.end())
+                throw;
             conv->second->Set(sbm);
             return conv->second->Transform();
         }

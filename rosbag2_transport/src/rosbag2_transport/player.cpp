@@ -395,7 +395,7 @@ BagInfo Player::parse_info(const StorageOptions& storageOptions, const ParseOpti
 //                delete unknownEvent;
 //                unknownEvent = nullptr;
 //            }
-        } catch(...) {
+        } catch(std::exception e) {
 //            if(!unknownEvent) {
 //                unknownEvent = new BagInfo::Event;
 //                if (!info.Events.empty())
@@ -405,6 +405,8 @@ BagInfo Player::parse_info(const StorageOptions& storageOptions, const ParseOpti
 //                unknownEvent->Message = "Fog of cataclysm";
 //                unknownEvent->Type = BagInfo::Event::Type::Unknown;
 //            }
+            auto msg = e.what();
+            std::cout << msg << std::endl;
             ROSBAG2_TRANSPORT_LOG_WARN("Memory gap, filling with unknown event");
         }
     }
