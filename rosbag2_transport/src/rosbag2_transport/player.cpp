@@ -131,6 +131,7 @@ void Player::play(const std::vector<StorageOptions> &storage_options, const Play
                     ROSBAG2_TRANSPORT_LOG_INFO("opening reader");
                     load_storage_content(options);
                     reader_->open(storage_options[i], {"", rmw_get_serialization_format()});
+                    prepare_publishers(options);
                 }
                 load_storage_content(options);
                 loading_next_bag_ = false;
