@@ -201,7 +201,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
     auto c= new std::shared_ptr<rosbag2_cpp::SerializationFormatConverterFactoryInterface>();
     ROSBAG2_TRANSPORT_LOG_ERROR("4");
     auto d= new std::unique_ptr<rosbag2_storage::MetadataIo>();
-
+    delete a,b,c,d;
   rosbag2_cpp::readers::SequentialReader();
   auto reader = std::make_shared<rosbag2_cpp::Reader>(
     std::make_unique<rosbag2_cpp::readers::SequentialReader>());
