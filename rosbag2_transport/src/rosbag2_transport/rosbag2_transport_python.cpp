@@ -194,9 +194,11 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   ROSBAG2_TRANSPORT_LOG_ERROR("---------point4,5---------");
   // Specify defaults
   auto info = std::make_shared<rosbag2_cpp::Info>();
+  ROSBAG2_TRANSPORT_LOG_ERROR("1");
   auto reader = std::make_shared<rosbag2_cpp::Reader>(
     std::make_unique<rosbag2_cpp::readers::SequentialReader>());
-  std::shared_ptr<rosbag2_cpp::Writer> writer;
+  ROSBAG2_TRANSPORT_LOG_ERROR("2");
+    std::shared_ptr<rosbag2_cpp::Writer> writer;
   // Change writer based on recording options
   ROSBAG2_TRANSPORT_LOG_ERROR("---------point4,75---------");
   if (record_options.compression_format == "zstd") {
