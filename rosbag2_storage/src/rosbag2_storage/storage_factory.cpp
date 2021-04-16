@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <string>
+#include <iostream>
 
 #include "rosbag2_storage/storage_interfaces/read_only_interface.hpp"
 #include "rosbag2_storage/storage_interfaces/read_write_interface.hpp"
@@ -35,7 +36,7 @@ using rosbag2_storage::storage_interfaces::ReadWriteInterface;
 StorageFactory::StorageFactory()
 : impl_(new StorageFactoryImpl())
 {
-
+    std::cout << "StorageFactory";
     bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
 }
 

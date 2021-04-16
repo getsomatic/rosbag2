@@ -192,7 +192,17 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
 
   // Specify defaults
   auto info = std::make_shared<rosbag2_cpp::Info>();
-  ROSBAG2_TRANSPORT_LOG_ERROR("1");
+
+    ROSBAG2_TRANSPORT_LOG_ERROR("1");
+    rosbag2_storage::StorageFactory();
+    ROSBAG2_TRANSPORT_LOG_ERROR("2");
+    std::unique_ptr<rosbag2_storage::StorageFactoryInterface> storage_factory;
+    ROSBAG2_TRANSPORT_LOG_ERROR("3");
+    std::shared_ptr<rosbag2_cpp::SerializationFormatConverterFactoryInterface> converter_factory;
+    ROSBAG2_TRANSPORT_LOG_ERROR("4");
+    std::unique_ptr<rosbag2_storage::MetadataIo> metadata_io;
+
+  rosbag2_cpp::readers::SequentialReader();
   auto reader = std::make_shared<rosbag2_cpp::Reader>(
     std::make_unique<rosbag2_cpp::readers::SequentialReader>());
 
