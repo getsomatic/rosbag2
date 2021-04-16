@@ -198,11 +198,14 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
     std::make_unique<rosbag2_cpp::readers::SequentialReader>());
   std::shared_ptr<rosbag2_cpp::Writer> writer;
   // Change writer based on recording options
+  ROSBAG2_TRANSPORT_LOG_ERROR("---------point4,75---------");
   if (record_options.compression_format == "zstd") {
     writer = std::make_shared<rosbag2_cpp::Writer>(
       std::make_unique<rosbag2_compression::SequentialCompressionWriter>(compression_options));
+      ROSBAG2_TRANSPORT_LOG_ERROR("---------TRUE---------");
   } else {
-    writer = std::make_shared<rosbag2_cpp::Writer>(
+      ROSBAG2_TRANSPORT_LOG_ERROR("---------FALSE---------");
+      writer = std::make_shared<rosbag2_cpp::Writer>(
       std::make_unique<rosbag2_cpp::writers::SequentialWriter>());
   }
   ROSBAG2_TRANSPORT_LOG_ERROR("---------point5---------");
