@@ -17,6 +17,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <rosbag2_transport/logging.hpp>
 
 #include "rcpputils/filesystem_helper.hpp"
 
@@ -217,6 +218,12 @@ struct convert<rosbag2_storage::BagMetadata>
 
 namespace rosbag2_storage
 {
+
+MetadataIo::MetadataIo()
+{
+    ROSBAG2_TRANSPORT_LOG_ERROR("StorageFactory Constructor Entered");
+
+}
 
 void MetadataIo::write_metadata(const std::string & uri, const BagMetadata & metadata)
 {

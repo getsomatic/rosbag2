@@ -27,7 +27,7 @@ class MetadataIo
 {
 public:
   static constexpr const char * const metadata_filename = "metadata.yaml";
-
+  MetadataIo();
   virtual ~MetadataIo() = default;
 
   ROSBAG2_STORAGE_PUBLIC

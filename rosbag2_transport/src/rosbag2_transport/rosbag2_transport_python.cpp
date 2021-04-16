@@ -121,7 +121,6 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   PyObject * topics = nullptr;
     PyObject * excludes = nullptr;
   bool include_hidden_topics = false;
-    ROSBAG2_TRANSPORT_LOG_ERROR("---------point3---------");
   if (
     !PyArg_ParseTupleAndKeywords(
       args, kwargs, "ssssss|bbKKKOObO", const_cast<char **>(kwlist),
@@ -144,7 +143,6 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   {
     return nullptr;
   }
-  ROSBAG2_TRANSPORT_LOG_ERROR("---------point4---------");
   storage_options.uri = std::string(uri);
   storage_options.storage_id = std::string(storage_id);
   storage_options.max_bagfile_size = (uint64_t) max_bagfile_size;
@@ -191,22 +189,19 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   record_options.rmw_serialization_format = std::string(serilization_format).empty() ?
     rmw_get_serialization_format() :
     serilization_format;
-  ROSBAG2_TRANSPORT_LOG_ERROR("---------point4,5---------");
+
   // Specify defaults
   auto info = std::make_shared<rosbag2_cpp::Info>();
   ROSBAG2_TRANSPORT_LOG_ERROR("1");
   auto reader = std::make_shared<rosbag2_cpp::Reader>(
     std::make_unique<rosbag2_cpp::readers::SequentialReader>());
-  ROSBAG2_TRANSPORT_LOG_ERROR("2");
+
     std::shared_ptr<rosbag2_cpp::Writer> writer;
   // Change writer based on recording options
-  ROSBAG2_TRANSPORT_LOG_ERROR("---------point4,75---------");
   if (record_options.compression_format == "zstd") {
     writer = std::make_shared<rosbag2_cpp::Writer>(
       std::make_unique<rosbag2_compression::SequentialCompressionWriter>(compression_options));
-      ROSBAG2_TRANSPORT_LOG_ERROR("---------TRUE---------");
   } else {
-      ROSBAG2_TRANSPORT_LOG_ERROR("---------FALSE---------");
       writer = std::make_shared<rosbag2_cpp::Writer>(
       std::make_unique<rosbag2_cpp::writers::SequentialWriter>());
   }

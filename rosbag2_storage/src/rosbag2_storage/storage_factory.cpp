@@ -24,7 +24,7 @@
 #include "./impl/storage_factory_impl.hpp"
 
 #include "bcr_core/tools/logging.hh"
-
+#include <rosbag2_transport/logging.hpp>
 
 namespace rosbag2_storage
 {
@@ -34,7 +34,10 @@ using rosbag2_storage::storage_interfaces::ReadWriteInterface;
 
 StorageFactory::StorageFactory()
 : impl_(new StorageFactoryImpl())
-{bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();}
+{
+
+    bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
+}
 
 // needed explicit destructor because of unique_ptr for pimpl
 StorageFactory::~StorageFactory() {}
