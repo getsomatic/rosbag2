@@ -17,7 +17,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <rosbag2_transport/logging.hpp>
+//#include <rosbag2_transport/logging.hpp>
 
 #include "rcpputils/filesystem_helper.hpp"
 
@@ -221,7 +221,7 @@ namespace rosbag2_storage
 
 MetadataIo::MetadataIo()
 {
-    ROSBAG2_TRANSPORT_LOG_ERROR("StorageFactory Constructor Entered");
+   // ROSBAG2_TRANSPORT_LOG_ERROR("StorageFactory Constructor Entered");
 
 }
 

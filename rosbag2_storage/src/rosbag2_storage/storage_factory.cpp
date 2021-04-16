@@ -24,7 +24,7 @@
 #include "./impl/storage_factory_impl.hpp"
 
 #include "bcr_core/tools/logging.hh"
-#include <rosbag2_transport/logging.hpp>
+//#include <rosbag2_transport/logging.hpp>
 
 namespace rosbag2_storage
 {

@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <rosbag2_transport/logging.hpp>
+#include "rosbag2_transport/logging.hpp"
 
 #include "./serialization_format_converter_factory_impl.hpp"
 
