@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <rosbag2_transport/logging.hpp>
 
 #include "rclcpp/qos.hpp"
 
@@ -120,6 +121,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   PyObject * topics = nullptr;
     PyObject * excludes = nullptr;
   bool include_hidden_topics = false;
+    ROSBAG2_TRANSPORT_LOG_ERROR("---------point3---------");
   if (
     !PyArg_ParseTupleAndKeywords(
       args, kwargs, "ssssss|bbKKKOObO", const_cast<char **>(kwlist),
@@ -142,7 +144,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   {
     return nullptr;
   }
-
+  ROSBAG2_TRANSPORT_LOG_ERROR("---------point4---------");
   storage_options.uri = std::string(uri);
   storage_options.storage_id = std::string(storage_id);
   storage_options.max_bagfile_size = (uint64_t) max_bagfile_size;
@@ -203,7 +205,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
     writer = std::make_shared<rosbag2_cpp::Writer>(
       std::make_unique<rosbag2_cpp::writers::SequentialWriter>());
   }
-
+  ROSBAG2_TRANSPORT_LOG_ERROR("---------point5---------");
   rosbag2_transport::Rosbag2Transport transport(reader, writer, info);
   transport.init();
   transport.record(storage_options, record_options);
