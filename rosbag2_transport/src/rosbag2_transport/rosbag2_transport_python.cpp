@@ -196,6 +196,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
     ROSBAG2_TRANSPORT_LOG_ERROR("1");
     try {
         auto a = new rosbag2_storage::StorageFactory();
+        delete a;
     } catch (const std::exception  e) {
         ROSBAG2_TRANSPORT_LOG_ERROR("ERRROR");
         throw e;
@@ -206,7 +207,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
     auto c= new std::shared_ptr<rosbag2_cpp::SerializationFormatConverterFactoryInterface>();
     ROSBAG2_TRANSPORT_LOG_ERROR("4");
     auto d= new std::unique_ptr<rosbag2_storage::MetadataIo>();
-    delete a;
+
     delete b;
     delete c;
     delete d;
