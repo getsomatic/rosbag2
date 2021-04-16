@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "rosbag2_transport/logging.hpp"
+//#include "rosbag2_transport/logging.hpp"
 
 #include "./serialization_format_converter_factory_impl.hpp"
 
@@ -27,7 +27,7 @@ namespace rosbag2_cpp
 SerializationFormatConverterFactory::SerializationFormatConverterFactory()
 : impl_(std::make_unique<SerializationFormatConverterFactoryImpl>())
 {
-    ROSBAG2_TRANSPORT_LOG_ERROR("SerializationFactory Constructor Entered");
+    //ROSBAG2_TRANSPORT_LOG_ERROR("SerializationFactory Constructor Entered");
 }
 
 SerializationFormatConverterFactory::~SerializationFormatConverterFactory() = default;
