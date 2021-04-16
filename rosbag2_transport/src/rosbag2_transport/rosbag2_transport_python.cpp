@@ -191,7 +191,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   record_options.rmw_serialization_format = std::string(serilization_format).empty() ?
     rmw_get_serialization_format() :
     serilization_format;
-
+  ROSBAG2_TRANSPORT_LOG_ERROR("---------point4,5---------");
   // Specify defaults
   auto info = std::make_shared<rosbag2_cpp::Info>();
   auto reader = std::make_shared<rosbag2_cpp::Reader>(
