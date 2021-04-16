@@ -86,6 +86,7 @@ class StorageFactoryImpl
 public:
   StorageFactoryImpl()
   {
+      ROSBAG2_STORAGE_LOG_ERROR_STREAM("Storage FactoryImpl constructor entered");
     try {
       read_write_class_loader_ = get_class_loader<ReadWriteInterface>();
     } catch (const std::exception & e) {
