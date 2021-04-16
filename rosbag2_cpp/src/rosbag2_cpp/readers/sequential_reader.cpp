@@ -65,7 +65,8 @@ SequentialReader::SequentialReader(
   converter_(nullptr),
   metadata_io_(std::move(metadata_io)),
   converter_factory_(std::move(converter_factory))
-{}
+{      ROSBAG2_CPP_LOG_ERROR("Constructor sequential Reader entered");
+}
 
 SequentialReader::~SequentialReader()
 {
