@@ -36,7 +36,7 @@ using rosbag2_storage::storage_interfaces::ReadWriteInterface;
 StorageFactory::StorageFactory()
 : impl_(new StorageFactoryImpl())
 {
-    bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
+    //bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
     ROSBAG2_STORAGE_LOG_ERROR("StorageFactory constructor");
 }
 
