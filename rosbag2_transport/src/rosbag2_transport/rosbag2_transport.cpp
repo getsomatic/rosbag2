@@ -60,6 +60,7 @@ Rosbag2Transport::Rosbag2Transport(
 
 void Rosbag2Transport::init()
 {
+  ROSBAG2_TRANSPORT_LOG_ERROR("---------Initt---------");
   rclcpp::init(0, nullptr);
 }
 
