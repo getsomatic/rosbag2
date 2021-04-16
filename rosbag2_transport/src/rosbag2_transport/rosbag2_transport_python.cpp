@@ -194,7 +194,12 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   auto info = std::make_shared<rosbag2_cpp::Info>();
 
     ROSBAG2_TRANSPORT_LOG_ERROR("1");
-    auto a=new rosbag2_storage::StorageFactory();
+    try {
+        auto a = new rosbag2_storage::StorageFactory();
+    } catch (const std::exception  e) {
+        ROSBAG2_TRANSPORT_LOG_ERROR("ERRROR");
+        throw e;
+    }
     ROSBAG2_TRANSPORT_LOG_ERROR("2");
     auto b= new std::unique_ptr<rosbag2_storage::StorageFactoryInterface>();
     ROSBAG2_TRANSPORT_LOG_ERROR("3");
