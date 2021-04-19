@@ -77,7 +77,7 @@ void Rosbag2Transport::record(
       storage_options, {rmw_get_serialization_format(), record_options.rmw_serialization_format});
       ROSBAG2_TRANSPORT_LOG_ERROR_STREAM("-------RECORDD-1--------");
     auto transport_node = setup_node(record_options.node_prefix);
-
+      ROSBAG2_TRANSPORT_LOG_ERROR_STREAM("-------RECORDD-1.5-------");
     Recorder recorder(writer_, transport_node);
       ROSBAG2_TRANSPORT_LOG_ERROR_STREAM("-------RECORDD-2-------");
     recorder.record(record_options);
