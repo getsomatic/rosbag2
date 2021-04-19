@@ -34,7 +34,7 @@ find_package(shared_queues_vendor REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
 find_package(rosbag2_storage_default_plugins REQUIRED)
 find_package(bcr_msgs REQUIRED COMPONENTS std_msgs geometry_msgs sensor_msgs)
-find_package(bcr_core REQUIRED)
+find_package(bcr_core)
 
 add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/player.cpp
@@ -77,7 +77,6 @@ ament_target_dependencies(rosbag2_transport_py
   rosbag2_storage
   rmw
   bcr_msgs
-  bcr_core
 )
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
