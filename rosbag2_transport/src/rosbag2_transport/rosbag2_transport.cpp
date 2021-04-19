@@ -60,7 +60,6 @@ Rosbag2Transport::Rosbag2Transport(
 
 void Rosbag2Transport::init()
 {
-  ROSBAG2_TRANSPORT_LOG_ERROR("---------Initt---------");
   rclcpp::init(0, nullptr);
 }
 
@@ -72,6 +71,7 @@ void Rosbag2Transport::shutdown()
 void Rosbag2Transport::record(
   const StorageOptions & storage_options, const RecordOptions & record_options)
 {
+    ROSBAG2_TRANSPORT_LOG_ERROR_STREAM("-------RECORDD---------");
   try {
     writer_->open(
       storage_options, {rmw_get_serialization_format(), record_options.rmw_serialization_format});

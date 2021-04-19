@@ -49,8 +49,9 @@ namespace rosbag2_transport
 {
 Recorder::Recorder(std::shared_ptr<rosbag2_cpp::Writer> writer, std::shared_ptr<Rosbag2Node> node)
 : writer_(std::move(writer)), node_(std::move(node)) {
-    //bcr::core::tools::logging::Logger("/home/jetson/development/deps/ros2_foxy/install/ros2cli/bin/ros2").ExecutableLogLevel();
     ROSBAG2_TRANSPORT_LOG_WARN_STREAM("Recorder Constructor entered");
+    //bcr::core::tools::logging::Logger("/home/jetson/development/deps/ros2_foxy/install/ros2cli/bin/ros2").ExecutableLogLevel();
+
     }
 
 void Recorder::record(const RecordOptions & record_options)

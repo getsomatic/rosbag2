@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-//#include <rosbag2_transport/logging.hpp>
 
 #include "rcpputils/filesystem_helper.hpp"
 
@@ -222,9 +221,6 @@ namespace rosbag2_storage
 
 MetadataIo::MetadataIo()
 {
-    std::cout << "MetadataInfo"<<std::endl;
-    //ROSBAG2_TRANSPORT_LOG_ERROR("StorageFactory Constructor Entered");
-
 }
 
 void MetadataIo::write_metadata(const std::string & uri, const BagMetadata & metadata)
