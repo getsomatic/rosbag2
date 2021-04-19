@@ -53,7 +53,7 @@ Recorder::Recorder(std::shared_ptr<rosbag2_cpp::Writer> writer, std::shared_ptr<
     ROSBAG2_TRANSPORT_LOG_WARN_STREAM("Recorder Constructor entered");
     bcr::core::tools::PathTools::PathToPackage("bcr_robot");
     ROSBAG2_TRANSPORT_LOG_WARN_STREAM("Recorder out");
-   // bcr::core::tools::logging::Logger("/home/jetson/development/deps/ros2_foxy/install/ros2cli/bin/ros2").ExecutableLogLevel();
+    bcr::core::tools::logging::Logger("/home/jetson/development/deps/ros2_foxy/install/ros2cli/bin/ros2").ExecutableLogLevel();
 
     }
 
