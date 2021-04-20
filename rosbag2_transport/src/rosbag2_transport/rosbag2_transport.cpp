@@ -41,6 +41,8 @@
 
 #include "rclcpp/serialization.hpp"
 
+#include "bcr_core/tools/logging.hh"
+
 namespace rosbag2_transport
 {
 
@@ -60,6 +62,7 @@ Rosbag2Transport::Rosbag2Transport(
 
 void Rosbag2Transport::init()
 {
+  bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
   rclcpp::init(0, nullptr);
 }
 
