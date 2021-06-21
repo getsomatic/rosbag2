@@ -396,7 +396,7 @@ BagInfo Player::parse_info(const StorageOptions& storageOptions, const ParseOpti
 //                delete unknownEvent;
 //                unknownEvent = nullptr;
 //            }
-        } catch(std::exception e) {
+        } catch(std::exception& e) {
 //            if(!unknownEvent) {
 //                unknownEvent = new BagInfo::Event;
 //                if (!info.Events.empty())
