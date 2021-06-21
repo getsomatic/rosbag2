@@ -118,7 +118,7 @@ rosbag2_transport_record(PyObject * Py_UNUSED(self), PyObject * args, PyObject *
   unsigned long long max_bagfile_size = 0;  // NOLINT
   uint64_t max_cache_size = 0u;
   PyObject * topics = nullptr;
-    PyObject * excludes = nullptr;
+  PyObject * excludes = nullptr;
   bool include_hidden_topics = false;
   if (
     !PyArg_ParseTupleAndKeywords(
