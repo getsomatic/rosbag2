@@ -2,7 +2,7 @@
   ros__parameters:
     uri: 0
     storage_id: sqlite3
-    serilization_format: 0
+    serilization_format: ~
     node_prefix: _
     compression_mode: none
     compression_format: 0

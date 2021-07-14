@@ -29,14 +29,53 @@
 class SomaticRosBag : rclcpp::Node {
 public:
     SomaticRosBag() : Node("somatic_rosbag") {
-
+        declare_parameter("uri", "x");
+        declare_parameter("storage_id", "sqlite3");
+        declare_parameter("max_bagfile_size", 1000000);
+        declare_parameter("max_cache_size", 0);
+        declare_parameter("all", true);
+        declare_parameter("no_discovery", false);
+        declare_parameter("polling_interval_ms", 100);
+        declare_parameter("node_prefix", "_");
+        declare_parameter("compression_mode", "none");
+        declare_parameter("compression_format", "");
+        declare_parameter("include_hidden_topics", false);
+        declare_parameter("topics", {});
+        declare_parameter("excludes", std::vector<std::string>({
+                "/camera/aligned_depth_to_color/camera_info",
+                "/camera/aligned_depth_to_color/image_raw",
+                "/camera/color/camera_info",
+                "/camera/color/image_raw",
+                "/camera/color/image_raw/compressed",
+                "/camera/color/image_raw/compressedDepth",
+                "/camera/color/image_raw/theora",
+                "/camera/depth/camera_info",
+                "/camera/depth/image_rect_raw",
+                "/camera/depth/image_rect_raw/compressed",
+                "/camera/depth/image_rect_raw/compressedDepth",
+                "/camera/depth/image_rect_raw/theora",
+                "/camera/infra1/camera_info",
+                "/camera/infra1/image_rect_raw",
+                "/camera/infra1/image_rect_raw/compressed",
+                "/camera/infra1/image_rect_raw/compressedDepth",
+                "/camera/infra1/image_rect_raw/theora",
+                "/camera/infra2/camera_info",
+                "/camera/infra2/image_rect_raw",
+                "/camera/infra2/image_rect_raw/compressed",
+                "/camera/infra2/image_rect_raw/compressedDepth",
+                "/camera/infra2/image_rect_raw/theora",
+                "/camera/pointcloud",
+                "/somatic/bcr/camera_point_cloud",
+                "/somatic/bcr/projected_camera_points"
+        }));
+        declare_parameter("serialization_format", "");
     }
 
     void Record() {
         rosbag2_transport::StorageOptions storage_options{};
         rosbag2_transport::RecordOptions record_options{};
 
-        // TODO: Get params
+        auto logger = rclcpp::get_logger("srosbag");
 
         storage_options.uri = get_parameter("uri").as_string();
         storage_options.storage_id = get_parameter("storage_id").as_string();
@@ -55,32 +94,16 @@ public:
                 rosbag2_compression::compression_mode_from_string(record_options.compression_mode)
         };
 
-        if (topics) {
-            PyObject * topic_iterator = PyObject_GetIter(topics);
-            if (topic_iterator != nullptr) {
-                PyObject * topic;
-                while ((topic = PyIter_Next(topic_iterator))) {
-                    record_options.topics.emplace_back(PyUnicode_AsUTF8(topic));
+        if (!record_options.all) {
+            auto topics = get_parameter("topics").as_string_array();
+            record_options.topics.insert(record_options.topics.begin(), topics.begin(), topics.end());
+        }
 
-                    Py_DECREF(topic);
-                }
-                Py_DECREF(topic_iterator);
-            }
-        }
-        if (excludes) {
-            PyObject * exclude_iterator = PyObject_GetIter(excludes);
-            if (exclude_iterator != nullptr) {
-                PyObject * exclude;
-                while ((exclude = PyIter_Next(exclude_iterator))) {
-                    record_options.excludes.emplace_back(PyUnicode_AsUTF8(exclude));
-                    Py_DECREF(exclude);
-                }
-                Py_DECREF(exclude_iterator);
-            }
-        }
-        record_options.rmw_serialization_format = std::string(serilization_format).empty() ?
-                                                  rmw_get_serialization_format() :
-                                                  serilization_format;
+        auto excludes = get_parameter("excludes").as_string_array();
+        record_options.excludes.insert(record_options.excludes.begin(), excludes.begin(), excludes.end());
+
+        auto sf = get_parameter("serialization_format").as_string();
+        record_options.rmw_serialization_format = sf.empty() ? rmw_get_serialization_format() : sf;
 
         // Specify defaults
         auto info = std::make_shared<rosbag2_cpp::Info>();
@@ -91,7 +114,7 @@ public:
         if (record_options.compression_format == "zstd") {
             writer = std::make_shared<rosbag2_cpp::Writer>(
                     std::make_unique<rosbag2_compression::SequentialCompressionWriter>(compression_options));
-        } else {.
+        } else {
             writer = std::make_shared<rosbag2_cpp::Writer>(
                     std::make_unique<rosbag2_cpp::writers::SequentialWriter>());
         }
@@ -103,25 +126,15 @@ public:
     }
 
 
-private:
-    char * uri = nullptr;
-    char * storage_id = nullptr;
-    char * serilization_format = nullptr;
-    char * node_prefix = nullptr;
-    char * compression_mode = nullptr;
-    char * compression_format = nullptr;
-    PyObject * qos_profile_overrides = nullptr;
-    bool all = false;
-    bool no_discovery = false;
-    uint64_t polling_interval_ms = 100;
-    unsigned long long max_bagfile_size = 0;  // NOLINT
-    uint64_t max_cache_size = 0u;
-    PyObject * topics = nullptr;
-    PyObject * excludes = nullptr;
-    bool include_hidden_topics = false;
 };
 
 int main (int argc, char **argv) {
+    rclcpp::init(argc, argv);
+    auto logger = rclcpp::get_logger("srosbag");
+    RCLCPP_WARN(logger, "Creating recorder");
     auto recorder = std::make_shared<SomaticRosBag>();
-    rclcpp::spin(recorder);
+    RCLCPP_WARN(logger, "Starting recording");
+    recorder->Record();
+    RCLCPP_WARN(logger, "Finishing");
+    return 0;
 }

@@ -36,6 +36,9 @@ find_package(rosbag2_storage_default_plugins REQUIRED)
 find_package(bcr_msgs REQUIRED COMPONENTS std_msgs geometry_msgs sensor_msgs)
 find_package(bcr_core)
 
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
 add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/player.cpp
         src/rosbag2_transport/formatter.cpp
@@ -50,6 +53,8 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+
+target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES})
 ament_target_dependencies(${PROJECT_NAME}
   rcl
   rclcpp
