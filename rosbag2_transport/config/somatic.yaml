@@ -1,0 +1,42 @@
+/**:
+  ros__parameters:
+    uri: 0
+    storage_id: sqlite3
+    serilization_format: 0
+    node_prefix: _
+    compression_mode: none
+    compression_format: 0
+    all: true
+    no_discovery: false
+    polling_interval_ms: 100
+    max_bagfile_size: 1000000
+    max_cache_size: 0
+    topics: ~
+    excludes:
+      - '/camera/aligned_depth_to_color/camera_info'
+      - '/camera/aligned_depth_to_color/image_raw'
+      - '/camera/color/camera_info'
+      - '/camera/color/image_raw'
+      - '/camera/color/image_raw/compressed'
+      - '/camera/color/image_raw/compressedDepth'
+      - '/camera/color/image_raw/theora'
+      - '/camera/depth/camera_info'
+      - '/camera/depth/image_rect_raw'
+      - '/camera/depth/image_rect_raw/compressed'
+      - '/camera/depth/image_rect_raw/compressedDepth'
+      - '/camera/depth/image_rect_raw/theora'
+      - '/camera/infra1/camera_info'
+      - '/camera/infra1/image_rect_raw'
+      - '/camera/infra1/image_rect_raw/compressed'
+      - '/camera/infra1/image_rect_raw/compressedDepth'
+      - '/camera/infra1/image_rect_raw/theora'
+      - '/camera/infra2/camera_info'
+      - '/camera/infra2/image_rect_raw'
+      - '/camera/infra2/image_rect_raw/compressed'
+      - '/camera/infra2/image_rect_raw/compressedDepth'
+      - '/camera/infra2/image_rect_raw/theora'
+      - '/camera/pointcloud'
+      - '/somatic/bcr/camera_point_cloud'
+      - '/somatic/bcr/projected_camera_points'
+    include_hidden_topics: false
+    qos_profile_overrides: 0

@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+#include <Python.h>
 #include "rosbag2_transport/rosbag2_transport.hpp"
 
 #include <memory>
@@ -42,7 +42,7 @@
 #include "rclcpp/serialization.hpp"
 
 #include "bcr_core/tools/logging.hh"
-
+#include <unistd.h>
 namespace rosbag2_transport
 {
 
@@ -62,6 +62,9 @@ Rosbag2Transport::Rosbag2Transport(
 
 void Rosbag2Transport::init()
 {
+    std::cout << "\nAttach NOW!\n" << std::endl;
+    usleep(10000000);
+    std::cout << "\n\n\n INIT \n\n\n" << std::endl;
   //bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
   rclcpp::init(0, nullptr);
 }

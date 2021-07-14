@@ -78,6 +78,14 @@ ament_target_dependencies(rosbag2_transport_py
   rmw
   bcr_msgs
 )
+
+add_executable(somatic_rosbag_node src/somatic_rosbag_node.cc)
+target_link_libraries(somatic_rosbag_node ${PROJECT_NAME} rosbag2_transport_py)
+install(TARGETS
+        somatic_rosbag_node
+        DESTINATION lib/${PROJECT_NAME})
+
+
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "ROSBAG2_TRANSPORT_BUILDING_LIBRARY")
@@ -190,6 +198,7 @@ function(create_tests_for_rmw_implementation)
     LINK_LIBS rosbag2_transport
     AMENT_DEPS test_msgs rosbag2_test_common)
 endfunction()
+
 
 if (FALSE)
 if(BUILD_TESTING)
