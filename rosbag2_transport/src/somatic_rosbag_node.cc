@@ -24,14 +24,14 @@
 #include "rosbag2_transport/record_options.hpp"
 #include "rosbag2_transport/storage_options.hpp"
 #include "rmw/rmw.h"
-
+#include <boost/filesystem.hpp>
 
 class SomaticRosBag : rclcpp::Node {
 public:
     SomaticRosBag() : Node("somatic_rosbag") {
-        declare_parameter("uri", "x");
+        declare_parameter("uri", "");
         declare_parameter("storage_id", "sqlite3");
-        declare_parameter("max_bagfile_size", 1000000);
+        declare_parameter("max_bagfile_size", 100000000);
         declare_parameter("max_cache_size", 0);
         declare_parameter("all", true);
         declare_parameter("no_discovery", false);
@@ -75,9 +75,37 @@ public:
         rosbag2_transport::StorageOptions storage_options{};
         rosbag2_transport::RecordOptions record_options{};
 
-        auto logger = rclcpp::get_logger("srosbag");
+        auto uri = get_parameter("uri").as_string();
+        if (uri.empty()) {
+            auto home = std::getenv("SOMATIC_BAG_DIR");
+            if (home) {
+                uri = home;
+            } else {
+                RCLCPP_FATAL(get_logger(), "Could not get output dir, exiting");
+                exit(1);
+            }
+        }
 
-        storage_options.uri = get_parameter("uri").as_string();
+
+        time_t rawtime;
+        struct tm * timeinfo;
+        char buffer[80];
+
+        time (&rawtime);
+        timeinfo = localtime(&rawtime);
+
+        strftime(buffer,sizeof(buffer),"%d-%m-%Y_%H:%M:%S",timeinfo);
+        std::string str(buffer);
+        uri+='/'+ std::string(buffer);
+
+        if (!boost::filesystem::create_directory(uri)) {
+            RCLCPP_FATAL(get_logger(), "Could not create output dir [%s], exiting", uri.c_str());
+            exit(1);
+        }
+
+        RCLCPP_INFO(get_logger(), "Output folder = [%s]", uri.c_str());
+        storage_options.uri = uri;
+
         storage_options.storage_id = get_parameter("storage_id").as_string();
         storage_options.max_bagfile_size = get_parameter("max_bagfile_size").as_int();
         storage_options.max_cache_size =  get_parameter("max_cache_size").as_int();
@@ -130,11 +158,8 @@ public:
 
 int main (int argc, char **argv) {
     rclcpp::init(argc, argv);
-    auto logger = rclcpp::get_logger("srosbag");
-    RCLCPP_WARN(logger, "Creating recorder");
+    auto logger = rclcpp::get_logger("somatic_rosbag");
     auto recorder = std::make_shared<SomaticRosBag>();
-    RCLCPP_WARN(logger, "Starting recording");
     recorder->Record();
-    RCLCPP_WARN(logger, "Finishing");
     return 0;
 }

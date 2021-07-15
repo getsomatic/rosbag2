@@ -35,6 +35,7 @@ find_package(yaml_cpp_vendor REQUIRED)
 find_package(rosbag2_storage_default_plugins REQUIRED)
 find_package(bcr_msgs REQUIRED COMPONENTS std_msgs geometry_msgs sensor_msgs)
 find_package(bcr_core)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
@@ -64,9 +65,10 @@ ament_target_dependencies(${PROJECT_NAME}
   rosbag2_cpp
   shared_queues_vendor
   yaml_cpp_vendor
-        rosbag2_storage_default_plugins
-        bcr_msgs
+  rosbag2_storage_default_plugins
+  bcr_msgs
   bcr_core
+  Boost
 )
 
 include(cmake/configure_python.cmake)
