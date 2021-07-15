@@ -94,11 +94,11 @@ public:
         time (&rawtime);
         timeinfo = localtime(&rawtime);
 
-        strftime(buffer,sizeof(buffer),"%d-%m-%Y_%H:%M:%S",timeinfo);
+        strftime(buffer,sizeof(buffer),"bags/%Y/%m/%d/%H:%M:%S",timeinfo);
         std::string str(buffer);
         uri+='/'+ std::string(buffer);
 
-        if (!boost::filesystem::create_directory(uri)) {
+        if (!boost::filesystem::create_directories(uri)) {
             RCLCPP_FATAL(get_logger(), "Could not create output dir [%s], exiting", uri.c_str());
             exit(1);
         }
