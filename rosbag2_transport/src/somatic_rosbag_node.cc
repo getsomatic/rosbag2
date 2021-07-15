@@ -157,8 +157,12 @@ public:
 };
 
 int main (int argc, char **argv) {
+
+//    std::cout << "\nAttach NOW!\n" << std::endl;
+//    usleep(10000000);
+//    std::cout << "\n\n\n INIT \n\n\n" << std::endl;
+
     rclcpp::init(argc, argv);
-    auto logger = rclcpp::get_logger("somatic_rosbag");
     auto recorder = std::make_shared<SomaticRosBag>();
     recorder->Record();
     return 0;

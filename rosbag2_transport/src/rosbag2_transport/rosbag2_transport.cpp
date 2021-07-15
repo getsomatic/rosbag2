@@ -62,9 +62,6 @@ Rosbag2Transport::Rosbag2Transport(
 
 void Rosbag2Transport::init()
 {
-//    std::cout << "\nAttach NOW!\n" << std::endl;
-//    usleep(10000000);
-//    std::cout << "\n\n\n INIT \n\n\n" << std::endl;
   //bcr::core::tools::logging::Logger("/opt/ros/foxy/bin/ros2").ExecutableLogLevel();
   if (!rclcpp::ok()) rclcpp::init(0, nullptr);
 }
