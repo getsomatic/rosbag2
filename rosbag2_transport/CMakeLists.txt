@@ -10,7 +10,7 @@ endif()
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
 endif()
-
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined -fsanitize-recover")
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
@@ -35,6 +35,10 @@ find_package(yaml_cpp_vendor REQUIRED)
 find_package(rosbag2_storage_default_plugins REQUIRED)
 find_package(bcr_msgs REQUIRED COMPONENTS std_msgs geometry_msgs sensor_msgs)
 find_package(bcr_core)
+find_package(Boost REQUIRED COMPONENTS filesystem)
+
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED
         src/rosbag2_transport/player.cpp
@@ -50,6 +54,8 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+
+target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES})
 ament_target_dependencies(${PROJECT_NAME}
   rcl
   rclcpp
@@ -59,9 +65,10 @@ ament_target_dependencies(${PROJECT_NAME}
   rosbag2_cpp
   shared_queues_vendor
   yaml_cpp_vendor
-        rosbag2_storage_default_plugins
-        bcr_msgs
+  rosbag2_storage_default_plugins
+  bcr_msgs
   bcr_core
+  Boost
 )
 
 include(cmake/configure_python.cmake)
@@ -78,6 +85,14 @@ ament_target_dependencies(rosbag2_transport_py
   rmw
   bcr_msgs
 )
+
+add_executable(somatic_rosbag_node src/somatic_rosbag_node.cc)
+target_link_libraries(somatic_rosbag_node ${PROJECT_NAME} rosbag2_transport_py)
+install(TARGETS
+        somatic_rosbag_node
+        DESTINATION lib/${PROJECT_NAME})
+
+
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "ROSBAG2_TRANSPORT_BUILDING_LIBRARY")
@@ -190,6 +205,7 @@ function(create_tests_for_rmw_implementation)
     LINK_LIBS rosbag2_transport
     AMENT_DEPS test_msgs rosbag2_test_common)
 endfunction()
+
 
 if (FALSE)
 if(BUILD_TESTING)
